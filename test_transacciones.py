@@ -1,6 +1,6 @@
-from Clase_Transacción import Transaccion, ListaTransacciones
+from Clase_Transaccion import Transaccion, ListaTransacciones
 
-def __main__():
+def main():
     def imprimir_transacciones(transacciones):
         for t in transacciones:
             print(f"ID: {t.id_transaccion}, Cliente: {t.id_cliente}, Total: {t.total}, Fecha: {t.fecha}, Estado: {t.estado}")
@@ -39,4 +39,4 @@ def __main__():
     imprimir_transacciones(lista.consultar_transacciones(fecha='2024-06-01'))
     
 if __name__ == "__main__":
-    __main__()
+    main()

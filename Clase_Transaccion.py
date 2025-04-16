@@ -3,7 +3,7 @@
     El módulo representa las ventas y/o transacciones realizadas a los clientes.
 
     - Registro de Transacciones:
-        Las ventas se registran mediante la clase ListaTransacción. Cada transacción está asociada a un cliente y se almacenan los productos vendidos, el total de la venta, la fecha y los detalles de pago. Las transacciones pueden ser consultadas por fecha o por cliente (Clase EstadoMovimiento), lo que permite tener un control eficiente de ventas.
+        Las ventas se registran mediante la clase ListaTransacciones. Cada transacción está asociada a un cliente y se almacenan los productos vendidos, el total de la venta, la fecha y los detalles de pago. Las transacciones pueden ser consultadas por fecha o por cliente (Clase EstadoMovimiento), lo que permite tener un control eficiente de ventas.
 
     - Aporta las propiedades de una lista doblemente enlazada para almacenar las transacciones de forma eficiente. Luego esta informacion puede ser almacenada en una base de datos o archivo para su persistencia.
     
