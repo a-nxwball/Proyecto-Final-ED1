@@ -32,7 +32,7 @@ class ListaProveedores:
 
         return nuevo_nodo
 
-    def nodo_actualizar_proveedor(self, id_proveedor, nuevos_datos):
+    def actualizar_proveedor(self, id_proveedor, nuevos_datos):
         if self.raiz is None:
             return False
 
