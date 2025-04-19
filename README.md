@@ -68,7 +68,3 @@ Base de datos en SQLite con las siguientes tablas:
    cd Proyecto-Final-ED1
 
    ```
-
-```bash
-
-````
