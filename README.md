@@ -14,37 +14,23 @@ Permite controlar productos, stock, proveedores, clientes y ventas, incluyendo l
 
 ## 🧠 Arquitectura del sistema
 
-El sistema está estructurado con clases y una base de datos SQLite. Las clases principales son:
+El sistema está estructurado en módulos de Python dentro de la carpeta `app`:
 
-### 🔸 Producto
+### Modulo de Productos
 
-- `id_producto`, `nombre`, `descripcion`, `categoria`, `precio`, `stock`, `fecha_expiracion`, `temporalidad`, `rebaja`
-- Métodos: `registrar_producto()`, `actualizar_producto()`, `eliminar_producto()`, `consultar_producto()`, `aplicar_rebaja()`
+- Clases: `Productos`, `ListaProductos`
 
-### 🔸 Proveedor
+### Modulo de Proveedores
 
-- `id_proveedor`, `nombre`, `contacto`, `direccion`
-- Métodos: `registrar_proveedor()`, `actualizar_proveedor()`, `eliminar_proveedor()`, `consultar_proveedor()`
+- Clases: `Proveedor`, `ListaProveedores`
 
-### 🔸 Cliente
+### Modulo de Clientes
 
-- `id_cliente`, `nombre`, `contacto`, `direccion`, `tipo_cliente`, `credito`
-- Métodos: `registrar_cliente()`, `actualizar_cliente()`, `eliminar_cliente()`, `consultar_cliente()`
+- Clases: `Cliente`, `ListaClientes`
 
-### 🔸 Transacción
+### Modulo de Transacciones
 
-- `id_transaccion`, `id_cliente`, `productos`, `total`, `fecha`, `tipo_pago`, `estado`
-- Métodos: `registrar_transaccion()`, `actualizar_transaccion()`, `eliminar_transaccion()`, `consultar_transacciones()`
-
-### 🔸 EstadoMovimiento
-
-- `id_estado`, `id_transaccion`, `fecha`, `tipo`
-- Métodos: `consultar_movimiento_por_fecha()`, `consultar_movimiento_por_tipo()`
-
-### 🔸 RotaciónInventario
-
-- `productos_temporada`, `productos_rebajados`
-- Métodos: `verificar_temporada()`, `verificar_rebaja()`
+- Clases: `Transaccion`, `ListaTransacciones`
 
 ## 🗃️ Estructura de la base de datos
 
