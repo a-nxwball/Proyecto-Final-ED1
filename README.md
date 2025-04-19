@@ -17,26 +17,32 @@ Permite controlar productos, stock, proveedores, clientes y ventas, incluyendo l
 El sistema está estructurado con clases y una base de datos SQLite. Las clases principales son:
 
 ### 🔸 Producto
+
 - `id_producto`, `nombre`, `descripcion`, `categoria`, `precio`, `stock`, `fecha_expiracion`, `temporalidad`, `rebaja`
 - Métodos: `registrar_producto()`, `actualizar_producto()`, `eliminar_producto()`, `consultar_producto()`, `aplicar_rebaja()`
 
 ### 🔸 Proveedor
+
 - `id_proveedor`, `nombre`, `contacto`, `direccion`
 - Métodos: `registrar_proveedor()`, `actualizar_proveedor()`, `eliminar_proveedor()`, `consultar_proveedor()`
 
 ### 🔸 Cliente
+
 - `id_cliente`, `nombre`, `contacto`, `direccion`, `tipo_cliente`, `credito`
 - Métodos: `registrar_cliente()`, `actualizar_cliente()`, `eliminar_cliente()`, `consultar_cliente()`
 
 ### 🔸 Transacción
+
 - `id_transaccion`, `id_cliente`, `productos`, `total`, `fecha`, `tipo_pago`, `estado`
 - Métodos: `registrar_transaccion()`, `actualizar_transaccion()`, `eliminar_transaccion()`, `consultar_transacciones()`
 
 ### 🔸 EstadoMovimiento
+
 - `id_estado`, `id_transaccion`, `fecha`, `tipo`
 - Métodos: `consultar_movimiento_por_fecha()`, `consultar_movimiento_por_tipo()`
 
 ### 🔸 RotaciónInventario
+
 - `productos_temporada`, `productos_rebajados`
 - Métodos: `verificar_temporada()`, `verificar_rebaja()`
 
@@ -74,8 +80,13 @@ Base de datos en SQLite con las siguientes tablas:
 ## 🚀 Instalación y uso
 
 1. Clona este repositorio:
+
    ```bash
    git clone https://github.com/a-nxwball/Proyecto-Final-ED1.git
    cd Proyecto-Final-ED1
+
    ```
+
+```bash
+
 ````
