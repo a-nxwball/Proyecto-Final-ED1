@@ -1,16 +1,14 @@
 # 🍎🥬 Proyecto-Final-ED1: Sistema de Gestión de Inventario para Tienda de Frutas y Verduras
 
 Este es un proyecto final desarrollado en Python que implementa un **Sistema de Gestión de Inventario** para una tienda de frutas y verduras.
-Permite controlar productos, stock, proveedores, clientes y ventas, incluyendo lógica de rotación de inventario por temporada y rebajas por fecha de expiración.
+Permite controlar productos, stock, proveedores, clientes y ventas e incluyendo lógica de rotación inventario.
 
 ## 📦 Funcionalidades principales
 
-- Registro, consulta, modificación y eliminación de productos.
-- Gestión de stock, caducidad, temporalidad y rebajas.
-- Módulo completo de proveedores y clientes.
-- Registro y seguimiento de ventas (transacciones).
-- Consulta de movimientos por tipo y fecha.
-- Control de rotación de productos según temporada y vencimiento.
+- Sistema modular con lógica basada en estructuras de datos.
+- Almacenamiento de los datos de manera sincronizada con la librería SQLite.
+- Funciones de crear, leer, actualizar y eliminar los datos de cada módulo.
+- 
 
 ## 🧠 Arquitectura del sistema
 
@@ -18,7 +16,7 @@ El sistema está estructurado en módulos de Python dentro de la carpeta `app`:
 
 ### Modulo de Productos
 
-- Clases: `Productos`, `ListaProductos`
+- Clases: `Producto`, `ListaProductos`
 
 ### Modulo de Proveedores
 
@@ -36,26 +34,25 @@ El sistema está estructurado en módulos de Python dentro de la carpeta `app`:
 
 Base de datos en SQLite con las siguientes tablas:
 
-- **productos**
-- **proveedores**
-- **clientes**
-- **transacciones**
+- **producto**
+- **proveedor**
+- **cliente**
+- **transaccion**
 - **estado_movimiento**
 - **rotacion_inventario**
 
 ## 🔁 Flujo de operaciones
 
-- **Inventario**: actualización de stock, rebajas automáticas y control de temporada.
-- **Proveedores y clientes**: gestión completa con datos de contacto y tipo de cliente.
-- **Transacciones**: registro de ventas con diferentes formas de pago.
-- **Movimientos**: seguimiento por fecha o tipo (compra/venta).
-- **Rotación**: control de productos temporales o por vencer.
+- **Gestión de Inventario**: Actualizacion de stock automatica y manejo de rebajas por temporalidad y expiración.
+- **Gestión de Proveedores y Clientes**: gestión completa con datos de contacto y tipo de cliente.
+- **Gestión de Transacciones**: Registro, manejo y seguimiento del flujo de ventas.
+- **Rotación**: "Clase-Método" para el control de temporalidad y expiración.
+- **Movimientos**: "Clase-Método" para el seguimiento de los estados de una transacción.
 
-## 🧠 Casos especiales
+## 🧠 Casos especiales simuados
 
-- **🎯 Productos de temporada**: solo disponibles en fechas específicas.
-- **⚠️ Rebajas por expiración**: descuentos aplicados automáticamente.
-- **📅 Consultas por fecha/tipo**: análisis de movimientos en el tiempo.
+- **🎯 Productos de temporada**: Rebajas o aumento de precio dependiendo de la temporada.
+- **⚠️ Rebajas por expiración**: Descuentos automáticos por productos por expirar.
 
 ## 🛠️ Tecnologías utilizadas
 
