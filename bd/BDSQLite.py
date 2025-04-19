@@ -1,9 +1,12 @@
+import os
 import sqlite3
 
-nombre_db = 'TiendaFrutasVerduras.db'
+# Construye la ruta absoluta al archivo .db dentro de la carpeta bd
+BASE_DIR = os.path.dirname(__file__)
+nombre_db = os.path.join(BASE_DIR, 'TiendaFrutasVerduras.db')
 
 def conectar_db():
-    """Conectar a SQLite."""
+    """Conectar a SQLite en bd/TiendaFrutasVerduras.db."""
     try:
         conexion = sqlite3.connect(nombre_db)
         return conexion
