@@ -45,7 +45,7 @@ Base de datos en SQLite con las siguientes tablas:
 - **Gestión de Inventario**: Actualizacion de stock automatica y manejo de rebajas por temporalidad y expiración.
 - **Gestión de Proveedores y Clientes**: gestión completa con datos de contacto y tipo de cliente.
 - **Gestión de Transacciones**: Registro, manejo y seguimiento del flujo de ventas.
-- **Gestión de Rotaciones**: "Clase-Método" para el control de salidas y entradas de los productos por fecha. También se encarga de la temporalidad y expiración.
+- **Gestión de Rotaciones**: "Clase-Método" para el control de salidas y entradas de los productos por fecha. También se encarga de la temporalidad y la expiración.
 - **Gestión de Movimientos**: "Clase-Método" para ayudar a mantener un seguimiento de las operaciones de compra y venta realizadas.
 
 ## 🧠 Casos especiales simulados
