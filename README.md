@@ -49,7 +49,7 @@ Base de datos en SQLite con las siguientes tablas:
 - **Rotación**: "Clase-Método" para el control de temporalidad y expiración.
 - **Movimientos**: "Clase-Método" para el seguimiento de los estados de una transacción.
 
-## 🧠 Casos especiales simuados
+## 🧠 Casos especiales simulados
 
 - **🎯 Productos de temporada**: Rebajas o aumento de precio dependiendo de la temporada.
 - **⚠️ Rebajas por expiración**: Descuentos automáticos por productos por expirar.
