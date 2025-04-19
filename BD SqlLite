@@ -1,6 +1,5 @@
 import sqlite3
 
-
 nombre_db = 'inventario_de_frutas.db'
 
 def conectar_db():
