@@ -1,4 +1,4 @@
-from Clase_Transaccion import Transaccion, ListaTransacciones
+from app.ModuloTransacciones import Transaccion, ListaTransacciones
 
 def main():
     def imprimir_transacciones(transacciones):

@@ -4,14 +4,12 @@ class Nodo:
         self.anterior = None
         self.siguiente = None
 
-
 class Proveedor:
     def __init__(self, id_proveedor, nombre, contacto, direccion):
         self.id_proveedor = id_proveedor
         self.nombre = nombre
         self.contacto = contacto
         self.direccion = direccion
-
 
 class ListaProveedores:
     def __init__(self):
