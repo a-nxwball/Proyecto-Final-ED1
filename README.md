@@ -8,7 +8,6 @@ Permite controlar productos, stock, proveedores, clientes y ventas e incluyendo 
 - Sistema modular con lógica basada en estructuras de datos.
 - Almacenamiento de los datos de manera sincronizada con la librería SQLite.
 - Funciones de crear, leer, actualizar y eliminar los datos de cada módulo.
-- 
 
 ## 🧠 Arquitectura del sistema
 
@@ -46,8 +45,8 @@ Base de datos en SQLite con las siguientes tablas:
 - **Gestión de Inventario**: Actualizacion de stock automatica y manejo de rebajas por temporalidad y expiración.
 - **Gestión de Proveedores y Clientes**: gestión completa con datos de contacto y tipo de cliente.
 - **Gestión de Transacciones**: Registro, manejo y seguimiento del flujo de ventas.
-- **Rotación**: "Clase-Método" para el control de temporalidad y expiración.
-- **Movimientos**: "Clase-Método" para el seguimiento de los estados de una transacción.
+- **Gestión de Rotaciones**: "Clase-Método" para el control de salidas y entradas de los productos por fecha. También se encarga de la temporalidad y expiración.
+- **Gestión de Movimientos**: "Clase-Método" para ayudar a mantener un seguimiento de las operaciones de compra y venta realizadas.
 
 ## 🧠 Casos especiales simuados
 
