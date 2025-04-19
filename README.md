@@ -48,7 +48,7 @@ Base de datos en SQLite con las siguientes tablas:
 - **Gestión de Rotaciones**: "Clase-Método" para el control de salidas y entradas de los productos por fecha. También se encarga de la temporalidad y expiración.
 - **Gestión de Movimientos**: "Clase-Método" para ayudar a mantener un seguimiento de las operaciones de compra y venta realizadas.
 
-## 🧠 Casos especiales simuados
+## 🧠 Casos especiales simulados
 
 - **🎯 Productos de temporada**: Rebajas o aumento de precio dependiendo de la temporada.
 - **⚠️ Rebajas por expiración**: Descuentos automáticos por productos por expirar.
