@@ -8,7 +8,6 @@ Permite controlar productos, stock, proveedores, clientes y ventas e incluyendo 
 - Sistema modular con lógica basada en estructuras de datos.
 - Almacenamiento de los datos de manera sincronizada con la librería SQLite.
 - Funciones de crear, leer, actualizar y eliminar los datos de cada módulo.
-- 
 
 ## 🧠 Arquitectura del sistema
 
