@@ -29,16 +29,24 @@ El sistema está estructurado en módulos de Python dentro de la carpeta `app`:
 
 - Clases: `Transaccion`, `ListaTransacciones`
 
+### Modulo de Movimientos
+
+- Clases: `Movimiento`, `ListaMovimientos`
+
+### Modulo de Rotaciones
+
+- Clases: `ModuloRotaciones` (utiliza `ListaProductos`)
+
 ## 🗃️ Estructura de la base de datos
 
 Base de datos en SQLite con las siguientes tablas:
 
-- **producto**
-- **proveedor**
-- **cliente**
-- **transaccion**
-- **estado_movimiento**
-- **rotacion_inventario**
+- **Productos**
+- **Proveedores**
+- **Clientes**
+- **Transacciones**
+- **Movimientos**
+- **Rotaciones**
 
 ## 🔁 Flujo de operaciones
 
@@ -52,6 +60,7 @@ Base de datos en SQLite con las siguientes tablas:
 
 - **🎯 Productos de temporada**: Rebajas o aumento de precio dependiendo de la temporada.
 - **⚠️ Rebajas por expiración**: Descuentos automáticos por productos por expirar.
+- **📊 Gestión de Inventarios por Fecha y Tipo**: Consulta de movimientos de inventario registrados en la tabla `Movimientos`.
 
 ## 🛠️ Tecnologías utilizadas
 

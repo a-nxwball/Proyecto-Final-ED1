@@ -1,12 +1,10 @@
 import os
 import sqlite3
 
-# Construye la ruta absoluta al archivo .db dentro de la carpeta bd
 BASE_DIR = os.path.dirname(__file__)
 nombre_db = os.path.join(BASE_DIR, 'TiendaFrutasVerduras.db')
 
 def conectar_db():
-    """Conectar a SQLite en bd/TiendaFrutasVerduras.db."""
     try:
         conexion = sqlite3.connect(nombre_db)
         return conexion
@@ -19,10 +17,8 @@ def crear_tablas():
     if conexion:
         cursor = conexion.cursor()
 
-        # Habilitar comprobación de claves foráneas
         cursor.execute("PRAGMA foreign_keys = ON")
         
-        # Opcional: limpiar tablas antiguas antes de recrear
         cursor.execute("DROP TABLE IF EXISTS Rotaciones")
         cursor.execute("DROP TABLE IF EXISTS Movimientos")
         cursor.execute("DROP TABLE IF EXISTS Transacciones")
@@ -30,7 +26,6 @@ def crear_tablas():
         cursor.execute("DROP TABLE IF EXISTS Proveedores")
         cursor.execute("DROP TABLE IF EXISTS Productos")
 
-        # Tabla Productos
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS Productos (
                 id_producto INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -45,7 +40,6 @@ def crear_tablas():
             )
         """)
 
-        # Tabla Proveedores
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS Proveedores (
                 id_proveedor INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -55,7 +49,6 @@ def crear_tablas():
             )
         """)
 
-        # Tabla Clientes
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS Clientes (
                 id_cliente INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -67,7 +60,6 @@ def crear_tablas():
             )
         """)
 
-        # Tabla Transacciones
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS Transacciones (
                 id_transaccion INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -81,7 +73,6 @@ def crear_tablas():
             )
         """)
 
-        # Tabla Movimientos
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS Movimientos (
                 id_estado INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -92,7 +83,6 @@ def crear_tablas():
             )
         """)
 
-        # Tabla Rotaciones
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS Rotaciones (
                 id_producto INTEGER NOT NULL,
