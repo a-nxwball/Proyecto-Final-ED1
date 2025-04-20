@@ -6,7 +6,8 @@
 - Alec Biruet
 - Carlos Poveda
 - Eimy Méndez
-- 
+- Irving Gutiérrez
+- Esteban Dimas
 
 Sistema modular en Python para la gestión integral de inventario, ventas, clientes y proveedores en una Abarrotería. Utiliza listas doblemente enlazadas para la gestión en memoria y sincronización con SQLite para persistencia.
 
