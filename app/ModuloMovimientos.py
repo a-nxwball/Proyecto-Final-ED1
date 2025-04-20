@@ -85,45 +85,60 @@ class ListaMovimientos:
         finally:
             if conexion: conexion.close()
 
-    def consultar_movimientos(self, fecha_consulta=None, tipo_consulta=None):
-        # Busca movimientos por fecha o tipo
+    def resumen_movimientos_por_rango(self, fecha_inicio, fecha_fin, tipo=None):
+        """
+        Devuelve un resumen de movimientos entre dos fechas (inclusive).
+        Si tipo es 'compra' o 'venta', filtra por ese tipo.
+        Retorna una lista de movimientos y el total de movimientos encontrados.
+        """
+        from datetime import date
+
+        def parse_fecha(f):
+            if isinstance(f, date):
+                return f
+            return date.fromisoformat(f)
+
+        fecha_inicio = parse_fecha(fecha_inicio)
+        fecha_fin = parse_fecha(fecha_fin)
         resultados = []
         nodo_actual = self.raiz
         while nodo_actual:
             m = nodo_actual.movimiento
-            fecha_coincide = True
-            tipo_coincide = True
-
-            if fecha_consulta:
-                # Asegurarse de que ambas sean objetos date para comparar
-                fecha_movimiento = m.fecha
-                if isinstance(fecha_movimiento, str):
-                    try:
-                        fecha_movimiento = date.fromisoformat(fecha_movimiento)
-                    except ValueError:
-                         fecha_coincide = False # No se puede comparar si el formato es inválido
-
-                if isinstance(fecha_consulta, str):
-                     try:
-                         fecha_consulta_obj = date.fromisoformat(fecha_consulta)
-                     except ValueError:
-                          raise ValueError("Formato de fecha de consulta inválido.")
-                elif isinstance(fecha_consulta, date):
-                     fecha_consulta_obj = fecha_consulta
-                else:
-                     raise TypeError("Tipo de fecha de consulta no soportado.")
-
-                if fecha_coincide: # Solo comparar si la fecha del movimiento es válida
-                    fecha_coincide = (fecha_movimiento == fecha_consulta_obj)
-
-            if tipo_consulta:
-                tipo_coincide = (m.tipo.lower() == tipo_consulta.lower())
-
-            if fecha_coincide and tipo_coincide:
-                resultados.append(m)
-
+            try:
+                fecha_mov = parse_fecha(m.fecha)
+            except Exception:
+                nodo_actual = nodo_actual.siguiente
+                continue
+            if fecha_inicio <= fecha_mov <= fecha_fin:
+                if tipo is None or m.tipo.lower() == tipo.lower():
+                    resultados.append(m)
             nodo_actual = nodo_actual.siguiente
-        return resultados
+        resumen = {
+            "total_movimientos": len(resultados),
+            "movimientos": resultados
+        }
+        return resumen
+
+    def consultar_movimientos(self, fecha_consulta=None, tipo_consulta=None):
+        """
+        Consulta movimientos por fecha exacta, tipo, ambos o ninguno.
+        Si solo se da fecha_consulta, busca movimientos de ese día.
+        Si solo tipo_consulta, busca por tipo.
+        Si ambos, busca por ambos.
+        Si ninguno, devuelve todos.
+        """
+        from datetime import date, timedelta
+
+        if fecha_consulta:
+            # Si solo se da una fecha, el rango es ese día
+            fecha_inicio = fecha_fin = fecha_consulta
+        else:
+            # Si no se da fecha, usar un rango amplio
+            fecha_inicio = "1900-01-01"
+            fecha_fin = "2999-12-31"
+
+        resumen = self.resumen_movimientos_por_rango(fecha_inicio, fecha_fin, tipo_consulta)
+        return resumen["movimientos"]
 
     def consultar_movimiento_por_id_transaccion(self, id_transaccion):
          # Busca un movimiento por el ID de la transacción asociada

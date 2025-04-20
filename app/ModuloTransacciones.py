@@ -207,3 +207,14 @@ class ListaTransacciones:
                 resultados.append(t)
             nodo_actual = nodo_actual.siguiente
         return resultados
+
+    def resumen_movimientos_por_rango(self, movimientos_lista, fecha_inicio, fecha_fin, tipo=None):
+        """
+        Devuelve un resumen de movimientos relacionados a las transacciones de esta lista
+        en un rango de fechas y opcionalmente por tipo.
+        movimientos_lista: instancia de ListaMovimientos.
+        """
+        if not movimientos_lista:
+            print("Debe proporcionar una instancia de ListaMovimientos.")
+            return None
+        return movimientos_lista.resumen_movimientos_por_rango(fecha_inicio, fecha_fin, tipo)

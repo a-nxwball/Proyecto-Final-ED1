@@ -171,3 +171,28 @@ class ListaClientes:
             nodo_actual = nodo_actual.siguiente
         
         return resultados
+
+    def resumen_movimientos_cliente(self, movimientos_lista, id_cliente, fecha_inicio, fecha_fin, tipo=None):
+        """
+        Devuelve un resumen de movimientos de un cliente específico en un rango de fechas y por tipo.
+        movimientos_lista: instancia de ListaMovimientos.
+        """
+        if not movimientos_lista:
+            print("Debe proporcionar una instancia de ListaMovimientos.")
+            return None
+        from app.ModuloTransacciones import ListaTransacciones
+        transacciones = ListaTransacciones()
+        transacciones_cliente = []
+        nodo = transacciones.raiz
+        while nodo:
+            if nodo.transaccion.id_cliente == id_cliente:
+                transacciones_cliente.append(nodo.transaccion.id_transaccion)
+            nodo = nodo.siguiente
+        resumen = movimientos_lista.resumen_movimientos_por_rango(fecha_inicio, fecha_fin, tipo)
+        movimientos_filtrados = [
+            m for m in resumen["movimientos"] if m.id_transaccion in transacciones_cliente
+        ]
+        return {
+            "total_movimientos": len(movimientos_filtrados),
+            "movimientos": movimientos_filtrados
+        }

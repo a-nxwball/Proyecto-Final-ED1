@@ -37,7 +37,7 @@ class ModuloRotaciones:
         return productos_temporada
 
     def obtener_productos_rebajados(self) -> list[Producto]:
-        # Devuelve productos con rebaja aplicada
+        # Devuelve productos con rebaja aplicada (>0)
         productos_rebajados = []
         nodo_actual = self.lista_productos.raiz
         while nodo_actual:
@@ -47,7 +47,7 @@ class ModuloRotaciones:
         return productos_rebajados
 
     def aplicar_rebajas_expiracion(self, dias_antes: int = 5, porcentaje_rebaja: float = 0.2) -> int:
-        # Aplica rebaja a productos cercanos a expirar
+        # Aplica rebaja a productos cercanos a expirar (por defecto, <= 5 días)
         hoy = date.today()
         fecha_limite = hoy + timedelta(days=dias_antes)
         nodo_actual = self.lista_productos.raiz

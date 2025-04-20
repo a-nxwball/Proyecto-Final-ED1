@@ -78,6 +78,28 @@ class ListaProductos:
             nuevo_nodo.anterior = nodo_actual
         return nuevo_nodo
 
+    def _mensaje_estado_producto(self, producto):
+        mensajes = []
+        # Mensaje por expiración próxima (5 días por defecto)
+        if producto.fecha_expiracion:
+            try:
+                fecha_exp = producto.fecha_expiracion
+                if isinstance(fecha_exp, str):
+                    fecha_exp = date.fromisoformat(fecha_exp)
+                dias_restantes = (fecha_exp - date.today()).days
+                if 0 <= dias_restantes <= 5:
+                    mensajes.append(f"⚠️ El producto '{producto.nombre}' está por expirar en {dias_restantes} día(s).")
+            except Exception:
+                pass
+        # Mensaje por temporada
+        if producto.temporalidad:
+            mensajes.append(f"🌱 El producto '{producto.nombre}' es de temporada.")
+        # Mensaje por rebaja activa
+        if producto.rebaja and producto.rebaja > 0:
+            mensajes.append(f"💸 El producto '{producto.nombre}' tiene una rebaja activa del {producto.rebaja*100:.0f}%.")
+        for m in mensajes:
+            print(m)
+
     def registrar_producto(self, nombre, descripcion, categoria, precio, stock, fecha_expiracion=None, temporalidad=False, rebaja=0.0):
         # Inserta en la BD primero para obtener el ID
         conexion = conectar_db()
@@ -95,6 +117,8 @@ class ListaProductos:
             producto = Producto(id_producto, nombre, descripcion, categoria, precio, stock, fecha_expiracion, temporalidad, rebaja)
             nuevo_nodo = self._agregar_nodo(producto)
             print(f"Producto '{nombre}' registrado con ID: {id_producto}")
+            # Mensajes automáticos
+            self._mensaje_estado_producto(producto)
             return nuevo_nodo.producto # Devolver el objeto producto creado
         except sqlite3.Error as e:
             print(f"Error al registrar producto en la BD: {e}")
@@ -200,19 +224,49 @@ class ListaProductos:
              return False
 
 
-    def consultar_producto(self, id_producto=None, nombre=None):
+    def consultar_producto(self, id_producto=None, nombre=None, solo_rebaja=False):
         resultados = []
         nodo_actual = self.raiz
         while nodo_actual:
             p = nodo_actual.producto
             id_coincide = (id_producto is None or p.id_producto == id_producto)
             nombre_coincide = (nombre is None or p.nombre.lower() == nombre.lower())
+            rebaja_coincide = (not solo_rebaja or (p.rebaja > 0))
 
-            if id_coincide and nombre_coincide:
+            if id_coincide and nombre_coincide and rebaja_coincide:
                 resultados.append(p)
+                # Mensajes automáticos al consultar
+                self._mensaje_estado_producto(p)
             
             if id_producto is not None and id_coincide:
                 break
                 
             nodo_actual = nodo_actual.siguiente
         return resultados
+
+    def resumen_movimientos_producto(self, movimientos_lista, id_producto, fecha_inicio, fecha_fin, tipo=None):
+        """
+        Devuelve un resumen de movimientos de un producto específico en un rango de fechas y por tipo.
+        movimientos_lista: instancia de ListaMovimientos.
+        """
+        if not movimientos_lista:
+            print("Debe proporcionar una instancia de ListaMovimientos.")
+            return None
+        # Buscar transacciones que incluyan este producto
+        from app.ModuloTransacciones import ListaTransacciones
+        transacciones = ListaTransacciones()
+        transacciones_con_producto = []
+        nodo = transacciones.raiz
+        while nodo:
+            if str(id_producto) in [str(pid) for pid in nodo.transaccion.productos]:
+                transacciones_con_producto.append(nodo.transaccion.id_transaccion)
+            nodo = nodo.siguiente
+        # Filtrar movimientos por esas transacciones
+        resumen = movimientos_lista.resumen_movimientos_por_rango(fecha_inicio, fecha_fin, tipo)
+        movimientos_filtrados = [
+            m for m in resumen["movimientos"] if m.id_transaccion in transacciones_con_producto
+        ]
+        return {
+            "total_movimientos": len(movimientos_filtrados),
+            "movimientos": movimientos_filtrados
+        }
