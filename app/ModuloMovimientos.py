@@ -13,22 +13,22 @@ except ImportError:
 class Movimiento:
     # Modelo de movimiento de inventario
     def __init__(self, id_estado, id_transaccion, fecha, tipo):
-        self.id_estado = id_estado
-        self.id_transaccion = id_transaccion
-        self.fecha = fecha
-        self.tipo = tipo
+        self.id_estado = id_estado  # Identificador único del movimiento en la BD (PK)
+        self.id_transaccion = id_transaccion  # ID de la transacción asociada (FK a Transacciones)
+        self.fecha = fecha  # Fecha del movimiento (string ISO o date)
+        self.tipo = tipo  # Tipo de movimiento: "compra", "venta", etc.
 
 class NodoMovimiento:
     # Nodo de lista doblemente enlazada para movimientos
     def __init__(self, movimiento):
-        self.movimiento = movimiento
-        self.anterior = None
-        self.siguiente = None
+        self.movimiento = movimiento  # Instancia de Movimiento almacenada en el nodo
+        self.anterior = None  # Referencia al nodo anterior en la lista
+        self.siguiente = None  # Referencia al nodo siguiente en la lista
 
 class ListaMovimientos:
     # Lista doblemente enlazada de movimientos con sincronización a BD
     def __init__(self):
-        self.raiz = None
+        self.raiz = None  # Nodo raíz (inicio) de la lista de movimientos
         self._cargar_desde_db()
 
     def _cargar_desde_db(self):
@@ -41,8 +41,12 @@ class ListaMovimientos:
             cursor.execute("SELECT * FROM Movimientos")
             filas = cursor.fetchall()
             for fila in filas:
+                # fila[0]: id_estado (PK), fila[1]: id_transaccion (FK), fila[2]: fecha, fila[3]: tipo
                 movimiento = Movimiento(
-                    id_estado=fila[0], id_transaccion=fila[1], fecha=fila[2], tipo=fila[3]
+                    id_estado=fila[0],  # ID único del movimiento (clave primaria en la tabla)
+                    id_transaccion=fila[1],  # ID de la transacción asociada (clave foránea)
+                    fecha=fila[2],  # Fecha del movimiento (string en formato ISO)
+                    tipo=fila[3]  # Tipo de movimiento: "compra", "venta", etc.
                 )
                 self._agregar_nodo(movimiento)
         except sqlite3.Error as e:
@@ -65,6 +69,9 @@ class ListaMovimientos:
 
     def registrar_movimiento(self, id_transaccion, fecha, tipo):
         # Registra un movimiento en la BD y la lista
+        # id_transaccion: ID de la transacción asociada (compra/venta)
+        # fecha: fecha del movimiento (string ISO)
+        # tipo: tipo de movimiento ("compra", "venta", etc.)
         conexion = conectar_db()
         if not conexion: return None
         try:
@@ -73,7 +80,7 @@ class ListaMovimientos:
                 INSERT INTO Movimientos (id_transaccion, fecha, tipo)
                 VALUES (?, ?, ?)
             """, (id_transaccion, fecha, tipo))
-            id_estado = cursor.lastrowid
+            id_estado = cursor.lastrowid  # ID autoincremental generado por la BD
             conexion.commit()
             movimiento = Movimiento(id_estado, id_transaccion, fecha, tipo)
             nuevo_nodo = self._agregar_nodo(movimiento)
@@ -87,6 +94,8 @@ class ListaMovimientos:
 
     def resumen_movimientos_por_rango(self, fecha_inicio, fecha_fin, tipo=None):
         # Resumen de movimientos entre dos fechas y tipo
+        # fecha_inicio, fecha_fin: strings ISO o date
+        # tipo: filtra por tipo de movimiento si se especifica
         from datetime import date
         def parse_fecha(f):
             if isinstance(f, date):
@@ -108,13 +117,15 @@ class ListaMovimientos:
                     resultados.append(m)
             nodo_actual = nodo_actual.siguiente
         resumen = {
-            "total_movimientos": len(resultados),
-            "movimientos": resultados
+            "total_movimientos": len(resultados),  # Total de movimientos encontrados
+            "movimientos": resultados  # Lista de instancias Movimiento
         }
         return resumen
 
     def consultar_movimientos(self, fecha_consulta=None, tipo_consulta=None):
         # Consulta movimientos por fecha, tipo o ambos
+        # fecha_consulta: string ISO o None
+        # tipo_consulta: string o None
         from datetime import date, timedelta
         if fecha_consulta:
             fecha_inicio = fecha_fin = fecha_consulta
@@ -126,6 +137,7 @@ class ListaMovimientos:
 
     def consultar_movimiento_por_id_transaccion(self, id_transaccion):
         # Busca un movimiento por ID de transacción
+        # id_transaccion: ID de la transacción asociada
         nodo_actual = self.raiz
         while nodo_actual:
             if nodo_actual.movimiento.id_transaccion == id_transaccion:
@@ -135,9 +147,10 @@ class ListaMovimientos:
 
     def eliminar_movimiento_por_id_transaccion(self, id_transaccion):
         # Elimina un movimiento de la BD y la lista por ID de transacción
+        # id_transaccion: ID de la transacción asociada
         conexion = conectar_db()
         if not conexion: return False
-        eliminado_db = False
+        eliminado_db = False  # Indica si se eliminó de la BD
         try:
             cursor = conexion.cursor()
             cursor.execute("DELETE FROM Movimientos WHERE id_transaccion = ?", (id_transaccion,))
@@ -151,7 +164,7 @@ class ListaMovimientos:
         finally:
             if conexion: conexion.close()
 
-        eliminado_lista = False
+        eliminado_lista = False  # Indica si se eliminó de la lista enlazada
         nodo_actual = self.raiz
         while nodo_actual:
             siguiente_nodo = nodo_actual.siguiente
@@ -206,11 +219,11 @@ class ListaMovimientos:
             nodo = nodo.siguiente
 
         # Agrupar por producto
-        rotacion = defaultdict(int)
-        entradas = defaultdict(int)
-        salidas = defaultdict(int)
-        stock_inicial = {}
-        stock_final = {}
+        rotacion = defaultdict(int)  # pid -> cantidad de movimientos (ventas+compras)
+        entradas = defaultdict(int)  # pid -> cantidad de compras
+        salidas = defaultdict(int)   # pid -> cantidad de ventas
+        stock_inicial = {}  # pid -> stock inicial (no se usa en lógica actual)
+        stock_final = {}    # pid -> stock final (no se usa en lógica actual)
 
         # Obtener stock inicial/final y rotación
         productos = lista_productos.consultar_producto()
@@ -236,9 +249,9 @@ class ListaMovimientos:
             if isinstance(t.productos, list):
                 for x in t.productos:
                     if isinstance(x, dict):
-                        productos_ids.append(x.get("id"))
+                        productos_ids.append(x.get("id"))  # x.get("id"): ID del producto en dict
                     else:
-                        productos_ids.append(x)
+                        productos_ids.append(x)  # x: ID del producto (int)
             else:
                 try:
                     productos_ids = [int(t.productos)]
@@ -257,8 +270,8 @@ class ListaMovimientos:
         if rotacion:
             max_rot = max(rotacion.values())
             min_rot = min(rotacion.values())
-            productos_mas_movidos = [pid for pid, v in rotacion.items() if v == max_rot]
-            productos_menos_movidos = [pid for pid, v in rotacion.items() if v == min_rot]
+            productos_mas_movidos = [pid for pid, v in rotacion.items() if v == max_rot]  # IDs con mayor rotación
+            productos_menos_movidos = [pid for pid, v in rotacion.items() if v == min_rot]  # IDs con menor rotación
         else:
             productos_mas_movidos = []
             productos_menos_movidos = []

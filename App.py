@@ -300,16 +300,16 @@ def menu_rotaciones(modulo_rotaciones):
             break
 
 def main():
-    productos = ListaProductos()
-    proveedores = ListaProveedores()
-    clientes = ListaClientes()
-    transacciones = ListaTransacciones()
-    movimientos = ListaMovimientos()
-    rotaciones = ModuloRotaciones(productos)
+    productos = ListaProductos()  # Lista doblemente enlazada de productos
+    proveedores = ListaProveedores()  # Lista doblemente enlazada de proveedores
+    clientes = ListaClientes()  # Lista doblemente enlazada de clientes
+    transacciones = ListaTransacciones()  # Lista doblemente enlazada de transacciones
+    movimientos = ListaMovimientos()  # Lista doblemente enlazada de movimientos
+    rotaciones = ModuloRotaciones(productos)  # Módulo de lógica de rotaciones, recibe la lista de productos
 
     while True:
         menu_principal()
-        op = input("Seleccione una opción: ")
+        op = input("Seleccione una opción: ")  # Variable de opción principal del menú
         if op == "1":
             menu_productos(productos)
         elif op == "2":

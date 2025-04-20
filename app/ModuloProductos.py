@@ -13,31 +13,31 @@ except ImportError:
 class Producto:
     # Modelo de producto
     def __init__(self, id_producto, nombre, descripcion, categoria, precio, stock, fecha_expiracion=None, temporalidad=False, rebaja=0.0, id_proveedor=None):
-        self.id_producto = id_producto
-        self.nombre = nombre
-        self.descripcion = descripcion
-        self.categoria = categoria
-        self.precio = precio
-        self.stock = stock
-        self.fecha_expiracion = fecha_expiracion
-        self.temporalidad = temporalidad
-        self.rebaja = rebaja
-        self.id_proveedor = id_proveedor
+        self.id_producto = id_producto  # Identificador único del producto en la BD
+        self.nombre = nombre  # Nombre del producto
+        self.descripcion = descripcion  # Descripción del producto
+        self.categoria = categoria  # Categoría del producto (ej: Fruta, Verdura)
+        self.precio = precio  # Precio actual del producto
+        self.stock = stock  # Stock actual disponible
+        self.fecha_expiracion = fecha_expiracion  # Fecha de expiración (string ISO o date)
+        self.temporalidad = temporalidad  # Indica si es producto de temporada (bool)
+        self.rebaja = rebaja  # Porcentaje de rebaja activa (ej: 0.2 para 20%)
+        self.id_proveedor = id_proveedor  # ID del proveedor asociado (FK)
 
 class NodoProducto:
     # Nodo de lista doblemente enlazada para productos
     def __init__(self, producto):
-        self.producto = producto
-        self.anterior = None
-        self.siguiente = None
+        self.producto = producto  # Instancia de Producto almacenada en el nodo
+        self.anterior = None  # Referencia al nodo anterior en la lista
+        self.siguiente = None  # Referencia al nodo siguiente en la lista
 
 class NodoCategoria:
     def __init__(self, categoria):
-        self.categoria = categoria
+        self.categoria = categoria  # Nombre de la categoría
         self.productos_raiz = None  # NodoProducto (inicio de la lista de productos de esta categoría)
-        self.siguiente = None
-        self.izquierda = None
-        self.derecha = None
+        self.siguiente = None  # No se usa en árbol, solo para compatibilidad
+        self.izquierda = None  # Hijo izquierdo en el árbol binario de categorías
+        self.derecha = None  # Hijo derecho en el árbol binario de categorías
 
     def agregar_producto(self, producto):
         nuevo_nodo = NodoProducto(producto)
@@ -52,7 +52,7 @@ class NodoCategoria:
 
 class ArbolCategorias:
     def __init__(self):
-        self.raiz = None
+        self.raiz = None  # NodoCategoria raíz del árbol binario de categorías
 
     def _insertar(self, nodo, categoria):
         if nodo is None:
@@ -107,12 +107,14 @@ class ArbolCategorias:
 class ListaProductos:
     # Lista doblemente enlazada de productos con sincronización a BD
     def __init__(self):
-        self.raiz = None
-        self.arbol_categorias = ArbolCategorias()
+        self.raiz = None  # Nodo raíz (inicio) de la lista de productos
+        self.arbol_categorias = ArbolCategorias()  # Árbol binario para categorías
         self._cargar_desde_db()
 
     def _cargar_desde_db(self):
         # Carga productos desde la base de datos
+        # Cada fila representa un producto con todos sus atributos
+        # fila[0]: id_producto, fila[1]: nombre, fila[2]: descripcion, fila[3]: categoria, fila[4]: precio, fila[5]: stock, fila[6]: fecha_expiracion, fila[7]: temporalidad, fila[8]: rebaja, fila[9]: id_proveedor
         self.raiz = None
         conexion = conectar_db()
         if not conexion:
@@ -153,6 +155,7 @@ class ListaProductos:
 
     def _mensaje_estado_producto(self, producto):
         # Mensajes automáticos de estado de producto
+        # mensajes: lista de strings con advertencias o información relevante
         mensajes = []
         if producto.fecha_expiracion:
             try:
@@ -173,6 +176,15 @@ class ListaProductos:
 
     def registrar_producto(self, nombre, descripcion, categoria, precio, stock, fecha_expiracion=None, temporalidad=False, rebaja=0.0, id_proveedor=None):
         # Registra un producto en la BD y la lista
+        # nombre: nombre del producto
+        # descripcion: descripción del producto
+        # categoria: categoría del producto
+        # precio: precio unitario
+        # stock: cantidad inicial
+        # fecha_expiracion: fecha de expiración (opcional)
+        # temporalidad: bool, si es de temporada
+        # rebaja: porcentaje de rebaja (ej: 0.2 para 20%)
+        # id_proveedor: ID del proveedor asociado
         if not fecha_expiracion:
             # Asigna fecha de expiración automática (7 días desde hoy)
             fecha_expiracion = (date.today() + timedelta(days=7)).isoformat()
@@ -199,6 +211,8 @@ class ListaProductos:
 
     def actualizar_producto(self, id_producto, nuevos_datos):
         # Actualiza un producto en la lista y la BD
+        # id_producto: identificador del producto a actualizar
+        # nuevos_datos: diccionario con los campos a actualizar
         nodo_actual = self.raiz
         producto_encontrado = None
         while nodo_actual:
@@ -235,6 +249,8 @@ class ListaProductos:
 
     def eliminar_producto(self, id_producto):
         # Elimina un producto de la BD y la lista
+        # id_producto: identificador del producto a eliminar
+        # eliminado_db: indica si se eliminó de la BD
         conexion = conectar_db()
         if not conexion: return False
         eliminado_db = False
@@ -274,6 +290,9 @@ class ListaProductos:
 
     def consultar_producto(self, id_producto=None, nombre=None, solo_rebaja=False):
         # Consulta productos por ID, nombre o rebaja
+        # id_producto: filtra por ID si se especifica
+        # nombre: filtra por nombre si se especifica
+        # solo_rebaja: si True, solo productos con rebaja activa
         resultados = []
         nodo_actual = self.raiz
         while nodo_actual:
@@ -290,13 +309,20 @@ class ListaProductos:
         return resultados
 
     def consultar_productos_por_categoria(self, categoria, limite=5):
+        # Devuelve hasta 'limite' productos de la categoría dada
         return self.arbol_categorias.consultar_productos_por_categoria(categoria, limite)
 
     def categorias_disponibles(self):
+        # Devuelve lista de nombres de categorías disponibles
         return self.arbol_categorias.categorias_disponibles()
 
     def resumen_movimientos_producto(self, movimientos_lista, id_producto, fecha_inicio, fecha_fin, tipo=None):
         # Resumen de movimientos de un producto
+        # movimientos_lista: instancia de ListaMovimientos
+        # id_producto: ID del producto a consultar
+        # fecha_inicio, fecha_fin: rango de fechas (string ISO o date)
+        # tipo: filtra por tipo de movimiento si se especifica
+        # transacciones_con_producto: IDs de transacciones que involucran el producto
         if not movimientos_lista:
             return None
         from app.ModuloTransacciones import ListaTransacciones

@@ -222,12 +222,12 @@ class ListaTransacciones:
                 transacciones_filtradas.append(t)
             nodo = nodo.siguiente
 
-        total_ventas = 0.0
-        total_compras = 0.0
-        pagos_realizados = 0.0
-        saldo_pendiente = 0.0
-        utilidad_bruta = 0.0
-        utilidad_neta = 0.0
+        total_ventas = 0.0  # Suma total de ventas realizadas (monto de transacciones de venta completadas)
+        total_compras = 0.0  # Suma total de compras realizadas (monto de transacciones de compra completadas)
+        pagos_realizados = 0.0  # Suma de pagos efectivamente realizados (ventas pagadas en efectivo o tarjeta)
+        saldo_pendiente = 0.0  # Suma de montos de transacciones pendientes de pago
+        utilidad_bruta = 0.0  # Diferencia entre ventas y compras (sin descontar otros gastos)
+        utilidad_neta = 0.0  # Utilidad neta (igual a bruta si no hay otros gastos)
 
         for t in transacciones_filtradas:
             if t.estado and t.estado.lower() == "completada":
@@ -240,7 +240,7 @@ class ListaTransacciones:
             elif t.estado and t.estado.lower() == "pendiente":
                 saldo_pendiente += t.total
 
-        utilidad_bruta = total_ventas - total_compras
+        utilidad_bruta = total_ventas - total_compras  # Cálculo de utilidad bruta
         utilidad_neta = utilidad_bruta  # Si hay otros gastos, restar aquí
 
         print("\n===== REPORTE TRANSACCIONAL FINAL =====")

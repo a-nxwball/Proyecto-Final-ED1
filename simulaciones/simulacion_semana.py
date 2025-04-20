@@ -19,8 +19,8 @@ STOCK_OBJETIVO = 30  # Nivel de stock deseado tras reabastecimiento
 MARGEN_OBJETIVO = 0.25  # Margen de ganancia objetivo para ajustar precios
 ROTACION_MINIMA = 3  # Número mínimo de ventas por semana para considerar buena rotación
 
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))  # Ruta base del proyecto
-DB_PATH = os.path.join(BASE_DIR, "bd", "Abarrotería.db")  # Ruta a la base de datos SQLite
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))  # Ruta base del proyecto (directorio raíz)
+DB_PATH = os.path.join(BASE_DIR, "bd", "Abarrotería.db")  # Ruta absoluta al archivo de la base de datos SQLite
 TABLAS = [
     "Rotaciones",      # Tabla para registrar rotaciones de productos
     "Movimientos",     # Tabla para registrar movimientos de inventario
@@ -32,6 +32,7 @@ TABLAS = [
 
 def limpiar_cache_pycache(root_dir):
     # Elimina carpetas __pycache__ y archivos .pyc en el directorio dado.
+    # root_dir: ruta base donde buscar y limpiar cachés de Python
     for dirpath, dirnames, filenames in os.walk(root_dir):
         if "__pycache__" in dirnames:
             pycache_path = os.path.join(dirpath, "__pycache__")

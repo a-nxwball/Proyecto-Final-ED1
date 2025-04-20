@@ -48,22 +48,22 @@ class ModuloRotaciones:
 
     def aplicar_rebajas_expiracion(self, dias_antes: int = 5, porcentaje_rebaja: float = 0.2) -> int:
         # Aplica rebaja a productos cercanos a expirar
-        hoy = date.today()
-        fecha_limite = hoy + timedelta(days=dias_antes)
-        nodo_actual = self.lista_productos.raiz
-        productos_actualizados = 0
+        hoy = date.today()  # Fecha actual del sistema
+        fecha_limite = hoy + timedelta(days=dias_antes)  # Fecha límite para considerar productos próximos a expirar
+        nodo_actual = self.lista_productos.raiz  # Nodo actual de la lista doblemente enlazada de productos
+        productos_actualizados = 0  # Contador de productos a los que se les aplicó rebaja
         while nodo_actual:
-            p = nodo_actual.producto
+            p = nodo_actual.producto  # Instancia de Producto en el nodo actual
             if p.fecha_expiracion:
                 try:
-                    fecha_exp_str = p.fecha_expiracion
+                    fecha_exp_str = p.fecha_expiracion  # Fecha de expiración en formato string o date
                     if isinstance(fecha_exp_str, date):
-                        fecha_exp = fecha_exp_str
+                        fecha_exp = fecha_exp_str  # Ya es un objeto date
                     elif isinstance(fecha_exp_str, str):
-                        fecha_exp = date.fromisoformat(fecha_exp_str)
+                        fecha_exp = date.fromisoformat(fecha_exp_str)  # Convertir string ISO a date
                     else:
                         raise TypeError("Formato de fecha de expiración no válido.")
-                    # Rebaja por expiración
+                    # Rebaja por expiración: si el producto expira entre hoy y la fecha límite y no tiene rebaja activa
                     if hoy <= fecha_exp <= fecha_limite and p.rebaja == 0.0:
                         actualizado = self.lista_productos.actualizar_producto(
                             p.id_producto,
@@ -75,8 +75,9 @@ class ModuloRotaciones:
                         else:
                             print(f"Error al intentar actualizar la rebaja para el producto ID {p.id_producto}.")
                     # Rebaja por temporada lluviosa/seca (ejemplo: meses 5-11 lluviosa, 12-4 seca)
-                    mes = hoy.month
+                    mes = hoy.month  # Mes actual (1-12)
                     if p.temporalidad:
+                        # Si es temporada lluviosa y no tiene rebaja activa
                         if 5 <= mes <= 11 and p.rebaja == 0.0:
                             actualizado = self.lista_productos.actualizar_producto(
                                 p.id_producto,
@@ -85,6 +86,7 @@ class ModuloRotaciones:
                             if actualizado:
                                 print(f"🌧️ Rebaja de temporada lluviosa aplicada a {p.nombre}.")
                                 productos_actualizados += 1
+                        # Si es temporada seca y no tiene rebaja activa
                         elif (mes < 5 or mes > 11) and p.rebaja == 0.0:
                             actualizado = self.lista_productos.actualizar_producto(
                                 p.id_producto,

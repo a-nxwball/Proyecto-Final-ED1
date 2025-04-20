@@ -1,13 +1,13 @@
 import os
 import sqlite3
 
-BASE_DIR = os.path.dirname(__file__)
-nombre_db = os.path.join(BASE_DIR, 'Abarrotería.db')
+BASE_DIR = os.path.dirname(__file__)  # Ruta base del directorio actual del archivo
+nombre_db = os.path.join(BASE_DIR, 'Abarrotería.db')  # Ruta completa al archivo de la base de datos SQLite
 
 # Función para conectar a la base de datos SQLite y devolver la conexión
 def conectar_db():
     try:
-        conexion = sqlite3.connect(nombre_db)
+        conexion = sqlite3.connect(nombre_db)  # Objeto de conexión a la base de datos
         return conexion
     except sqlite3.Error as e:
         print(f"No se puede conectar a la BD: {e}")
@@ -15,12 +15,13 @@ def conectar_db():
 
 # Función para crear las tablas necesarias en la base de datos
 def crear_tablas():
-    conexion = conectar_db()
+    conexion = conectar_db()  # Conexión activa a la base de datos
     if conexion:
-        cursor = conexion.cursor()
+        cursor = conexion.cursor()  # Cursor para ejecutar sentencias SQL
 
-        cursor.execute("PRAGMA foreign_keys = ON")
+        cursor.execute("PRAGMA foreign_keys = ON")  # Habilita claves foráneas en SQLite
         
+        # Elimina tablas si existen para reiniciar la estructura (orden importante por dependencias)
         cursor.execute("DROP TABLE IF EXISTS Rotaciones")
         cursor.execute("DROP TABLE IF EXISTS Movimientos")
         cursor.execute("DROP TABLE IF EXISTS Transacciones")

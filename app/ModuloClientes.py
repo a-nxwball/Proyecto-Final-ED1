@@ -12,24 +12,24 @@ except ImportError:
 class Cliente:
     # Modelo de cliente
     def __init__(self, id_cliente, nombre, contacto, direccion, tipo_cliente, credito=0):
-        self.id_cliente = id_cliente
-        self.nombre = nombre
-        self.contacto = contacto
-        self.direccion = direccion
-        self.tipo_cliente = tipo_cliente
-        self.credito = credito
+        self.id_cliente = id_cliente  # Identificador único del cliente en la BD
+        self.nombre = nombre  # Nombre del cliente
+        self.contacto = contacto  # Información de contacto (teléfono, email, etc.)
+        self.direccion = direccion  # Dirección física del cliente
+        self.tipo_cliente = tipo_cliente  # Tipo de cliente (minorista, mayorista, interno, etc.)
+        self.credito = credito  # Monto de crédito disponible o asignado al cliente
 
 class NodoCliente:
     # Nodo de lista doblemente enlazada para clientes
     def __init__(self, cliente):
-        self.cliente = cliente
-        self.anterior = None
-        self.siguiente = None
+        self.cliente = cliente  # Instancia de Cliente almacenada en el nodo
+        self.anterior = None  # Referencia al nodo anterior en la lista
+        self.siguiente = None  # Referencia al nodo siguiente en la lista
 
 class ListaClientes:
     # Lista doblemente enlazada de clientes con sincronización a BD
     def __init__(self):
-        self.raiz = None
+        self.raiz = None  # Nodo raíz (inicio) de la lista de clientes
         self._cargar_desde_db()
 
     def _cargar_desde_db(self):
