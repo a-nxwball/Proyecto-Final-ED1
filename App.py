@@ -16,6 +16,26 @@ def menu_principal():
     print("6. Rotaciones")
     print("0. Salir")
 
+def input_int(prompt, allow_empty=False):
+    while True:
+        val = input(prompt)
+        if allow_empty and val.strip() == "":
+            return None
+        try:
+            return int(val)
+        except ValueError:
+            print("Por favor, ingrese un número válido.")
+
+def input_float(prompt, allow_empty=False):
+    while True:
+        val = input(prompt)
+        if allow_empty and val.strip() == "":
+            return None
+        try:
+            return float(val)
+        except ValueError:
+            print("Por favor, ingrese un número válido.")
+
 def menu_productos(lista):
     while True:
         print("\n--- Gestión de Productos ---")
@@ -29,16 +49,16 @@ def menu_productos(lista):
             nombre = input("Nombre: ")
             descripcion = input("Descripción: ")
             categoria = input("Categoría: ")
-            precio = float(input("Precio: "))
-            stock = int(input("Stock: "))
+            precio = input_float("Precio: ")
+            stock = input_int("Stock: ")
             fecha_expiracion = input("Fecha expiración (YYYY-MM-DD, opcional): ") or None
-            temporalidad = input("¿Es de temporada? (s/n): ").lower() == "s"
-            rebaja = float(input("Rebaja (0 si no aplica): ") or 0)
+            temporalidad = input("¿Es de temporada? (s/n): ").strip().lower() == "s"
+            rebaja = input_float("Rebaja (0 si no aplica): ", allow_empty=True) or 0
             lista.registrar_producto(nombre, descripcion, categoria, precio, stock, fecha_expiracion, temporalidad, rebaja)
         elif op == "2":
             criterio = input("Buscar por (1) ID o (2) Nombre: ")
             if criterio == "1":
-                idp = int(input("ID producto: "))
+                idp = input_int("ID producto: ")
                 res = lista.consultar_producto(id_producto=idp)
             else:
                 nombre = input("Nombre producto: ")
@@ -46,18 +66,26 @@ def menu_productos(lista):
             for p in res:
                 print(vars(p))
         elif op == "3":
-            idp = int(input("ID producto a actualizar: "))
+            idp = input_int("ID producto a actualizar: ")
             campo = input("Campo a actualizar (nombre, descripcion, categoria, precio, stock, fecha_expiracion, temporalidad, rebaja): ")
             valor = input("Nuevo valor: ")
             if campo in ["precio", "rebaja"]:
-                valor = float(valor)
+                try:
+                    valor = float(valor)
+                except ValueError:
+                    print("Valor inválido para campo numérico.")
+                    continue
             elif campo == "stock":
-                valor = int(valor)
+                try:
+                    valor = int(valor)
+                except ValueError:
+                    print("Valor inválido para campo numérico.")
+                    continue
             elif campo == "temporalidad":
                 valor = valor.lower() == "true" or valor.lower() == "s"
             lista.actualizar_producto(idp, {campo: valor})
         elif op == "4":
-            idp = int(input("ID producto a eliminar: "))
+            idp = input_int("ID producto a eliminar: ")
             lista.eliminar_producto(idp)
         elif op == "0":
             break
@@ -77,16 +105,16 @@ def menu_proveedores(lista):
             direccion = input("Dirección: ")
             lista.registrar_proveedor(nombre, contacto, direccion)
         elif op == "2":
-            idp = int(input("ID proveedor: "))
+            idp = input_int("ID proveedor: ")
             p = lista.consultar_proveedor(idp)
             print(vars(p) if p else "No encontrado.")
         elif op == "3":
-            idp = int(input("ID proveedor a actualizar: "))
+            idp = input_int("ID proveedor a actualizar: ")
             campo = input("Campo a actualizar (nombre, contacto, direccion): ")
             valor = input("Nuevo valor: ")
             lista.actualizar_proveedor(idp, {campo: valor})
         elif op == "4":
-            idp = int(input("ID proveedor a eliminar: "))
+            idp = input_int("ID proveedor a eliminar: ")
             lista.eliminar_proveedor(idp)
         elif op == "0":
             break
@@ -105,12 +133,12 @@ def menu_clientes(lista):
             contacto = input("Contacto: ")
             direccion = input("Dirección: ")
             tipo_cliente = input("Tipo cliente (minorista/mayorista): ")
-            credito = float(input("Crédito (0 si no aplica): ") or 0)
+            credito = input_float("Crédito (0 si no aplica): ", allow_empty=True) or 0
             lista.registrar_cliente(nombre, contacto, direccion, tipo_cliente, credito)
         elif op == "2":
             criterio = input("Buscar por (1) ID o (2) Nombre: ")
             if criterio == "1":
-                idc = int(input("ID cliente: "))
+                idc = input_int("ID cliente: ")
                 res = lista.consultar_cliente(id_cliente=idc)
             else:
                 nombre = input("Nombre cliente: ")
@@ -118,14 +146,18 @@ def menu_clientes(lista):
             for c in res:
                 print(vars(c))
         elif op == "3":
-            idc = int(input("ID cliente a actualizar: "))
+            idc = input_int("ID cliente a actualizar: ")
             campo = input("Campo a actualizar (nombre, contacto, direccion, tipo_cliente, credito): ")
             valor = input("Nuevo valor: ")
             if campo == "credito":
-                valor = float(valor)
+                try:
+                    valor = float(valor)
+                except ValueError:
+                    print("Valor inválido para campo numérico.")
+                    continue
             lista.actualizar_cliente(idc, {campo: valor})
         elif op == "4":
-            idc = int(input("ID cliente a eliminar: "))
+            idc = input_int("ID cliente a eliminar: ")
             lista.eliminar_cliente(idc)
         elif op == "0":
             break
@@ -140,10 +172,10 @@ def menu_transacciones(lista):
         print("0. Volver")
         op = input("Seleccione una opción: ")
         if op == "1":
-            id_cliente = int(input("ID cliente: "))
+            id_cliente = input_int("ID cliente: ")
             productos = input("Productos (separados por coma): ").split(",")
             productos = [p.strip() for p in productos]
-            total = float(input("Total: "))
+            total = input_float("Total: ")
             fecha = input("Fecha (YYYY-MM-DD): ")
             tipo_pago = input("Tipo de pago: ")
             estado = input("Estado (pendiente/completada/cancelada): ")
@@ -151,7 +183,7 @@ def menu_transacciones(lista):
         elif op == "2":
             filtro = input("Filtrar por (1) Cliente, (2) Fecha, (3) Todos: ")
             if filtro == "1":
-                idc = int(input("ID cliente: "))
+                idc = input_int("ID cliente: ")
                 res = lista.consultar_transacciones(id_cliente=idc)
             elif filtro == "2":
                 fecha = input("Fecha (YYYY-MM-DD): ")
@@ -161,16 +193,20 @@ def menu_transacciones(lista):
             for t in res:
                 print(vars(t))
         elif op == "3":
-            idt = int(input("ID transacción a actualizar: "))
+            idt = input_int("ID transacción a actualizar: ")
             campo = input("Campo a actualizar (estado, total, productos, tipo_pago, fecha): ")
             valor = input("Nuevo valor: ")
             if campo == "total":
-                valor = float(valor)
+                try:
+                    valor = float(valor)
+                except ValueError:
+                    print("Valor inválido para campo numérico.")
+                    continue
             elif campo == "productos":
                 valor = [p.strip() for p in valor.split(",")]
             lista.actualizar_transaccion(idt, {campo: valor})
         elif op == "4":
-            idt = int(input("ID transacción a eliminar: "))
+            idt = input_int("ID transacción a eliminar: ")
             lista.eliminar_transaccion(idt)
         elif op == "0":
             break
@@ -184,7 +220,7 @@ def menu_movimientos(lista):
         print("0. Volver")
         op = input("Seleccione una opción: ")
         if op == "1":
-            id_transaccion = int(input("ID transacción: "))
+            id_transaccion = input_int("ID transacción: ")
             fecha = input("Fecha (YYYY-MM-DD): ")
             tipo = input("Tipo (compra/venta): ")
             lista.registrar_movimiento(id_transaccion, fecha, tipo)
@@ -201,7 +237,7 @@ def menu_movimientos(lista):
             for m in res:
                 print(vars(m))
         elif op == "3":
-            idt = int(input("ID transacción: "))
+            idt = input_int("ID transacción: ")
             lista.eliminar_movimiento_por_id_transaccion(idt)
         elif op == "0":
             break
@@ -217,11 +253,11 @@ def menu_rotaciones(modulo_rotaciones):
         print("0. Volver")
         op = input("Seleccione una opción: ")
         if op == "1":
-            idp = int(input("ID producto: "))
+            idp = input_int("ID producto: ")
             res = modulo_rotaciones.verificar_temporada(idp)
             print("Es de temporada" if res else "No es de temporada")
         elif op == "2":
-            idp = int(input("ID producto: "))
+            idp = input_int("ID producto: ")
             rebaja = modulo_rotaciones.verificar_rebaja(idp)
             print(f"Rebaja: {rebaja}")
         elif op == "3":
