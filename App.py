@@ -43,6 +43,7 @@ def menu_productos(lista):
         print("2. Consultar producto")
         print("3. Actualizar producto")
         print("4. Eliminar producto")
+        print("5. Consultar productos por categoría")
         print("0. Volver")
         op = input("Seleccione una opción: ")
         if op == "1":
@@ -87,6 +88,30 @@ def menu_productos(lista):
         elif op == "4":
             idp = input_int("ID producto a eliminar: ")
             lista.eliminar_producto(idp)
+        elif op == "5":
+            categorias = lista.categorias_disponibles()
+            if not categorias:
+                print("No hay categorías registradas.")
+                continue
+            print("Categorías disponibles:")
+            for idx, cat in enumerate(categorias, 1):
+                print(f"{idx}. {cat}")
+            idx_cat = input_int("Seleccione el número de la categoría: ")
+            if not (1 <= idx_cat <= len(categorias)):
+                print("Selección inválida.")
+                continue
+            categoria = categorias[idx_cat - 1]
+            print("¿Cuántos productos desea ver? (5, 10, 15)")
+            limite = input_int("Cantidad: ")
+            if limite not in (5, 10, 15):
+                print("Cantidad inválida, mostrando 5 por defecto.")
+                limite = 5
+            productos_cat = lista.consultar_productos_por_categoria(categoria, limite)
+            if not productos_cat:
+                print("No hay productos en esta categoría.")
+            else:
+                for p in productos_cat:
+                    print(vars(p))
         elif op == "0":
             break
 

@@ -2,8 +2,9 @@ import os
 import sqlite3
 
 BASE_DIR = os.path.dirname(__file__)
-nombre_db = os.path.join(BASE_DIR, 'TiendaFrutasVerduras.db')
+nombre_db = os.path.join(BASE_DIR, 'Abarrotería.db')
 
+# Función para conectar a la base de datos SQLite y devolver la conexión
 def conectar_db():
     try:
         conexion = sqlite3.connect(nombre_db)
@@ -12,6 +13,7 @@ def conectar_db():
         print(f"No se puede conectar a la BD: {e}")
         return None
 
+# Función para crear las tablas necesarias en la base de datos
 def crear_tablas():
     conexion = conectar_db()
     if conexion:
@@ -36,7 +38,9 @@ def crear_tablas():
                 stock INTEGER NOT NULL CHECK(stock >= 0),
                 fecha_expiracion DATE,
                 temporalidad BOOLEAN NOT NULL DEFAULT 0,
-                rebaja REAL NOT NULL DEFAULT 0
+                rebaja REAL NOT NULL DEFAULT 0,
+                id_proveedor INTEGER,
+                FOREIGN KEY (id_proveedor) REFERENCES Proveedores(id_proveedor) ON DELETE SET NULL
             )
         """)
 
@@ -63,13 +67,15 @@ def crear_tablas():
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS Transacciones (
                 id_transaccion INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                id_cliente INTEGER NOT NULL,
+                id_cliente INTEGER,
+                id_proveedor INTEGER,
                 productos TEXT NOT NULL,
                 total REAL NOT NULL CHECK(total >= 0),
                 fecha DATE NOT NULL,
                 tipo_pago TEXT NOT NULL,
                 estado TEXT NOT NULL,
-                FOREIGN KEY (id_cliente) REFERENCES Clientes(id_cliente) ON DELETE CASCADE
+                FOREIGN KEY (id_cliente) REFERENCES Clientes(id_cliente) ON DELETE CASCADE,
+                FOREIGN KEY (id_proveedor) REFERENCES Proveedores(id_proveedor) ON DELETE SET NULL
             )
         """)
 

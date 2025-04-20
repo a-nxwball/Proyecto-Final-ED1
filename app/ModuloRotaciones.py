@@ -63,19 +63,39 @@ class ModuloRotaciones:
                         fecha_exp = date.fromisoformat(fecha_exp_str)
                     else:
                         raise TypeError("Formato de fecha de expiración no válido.")
+                    # Rebaja por expiración
                     if hoy <= fecha_exp <= fecha_limite and p.rebaja == 0.0:
                         actualizado = self.lista_productos.actualizar_producto(
                             p.id_producto,
                             {'rebaja': porcentaje_rebaja}
                         )
                         if actualizado:
-                            print(f"Rebaja ({porcentaje_rebaja*100}%) aplicada al producto ID {p.id_producto} ({p.nombre}) por proximidad de expiración.")
+                            print(f"💸 Rebaja ({porcentaje_rebaja*100}%) aplicada al producto ID {p.id_producto} ({p.nombre}) por proximidad de expiración.")
                             productos_actualizados += 1
                         else:
                             print(f"Error al intentar actualizar la rebaja para el producto ID {p.id_producto}.")
+                    # Rebaja por temporada lluviosa/seca (ejemplo: meses 5-11 lluviosa, 12-4 seca)
+                    mes = hoy.month
+                    if p.temporalidad:
+                        if 5 <= mes <= 11 and p.rebaja == 0.0:
+                            actualizado = self.lista_productos.actualizar_producto(
+                                p.id_producto,
+                                {'rebaja': 0.15}
+                            )
+                            if actualizado:
+                                print(f"🌧️ Rebaja de temporada lluviosa aplicada a {p.nombre}.")
+                                productos_actualizados += 1
+                        elif (mes < 5 or mes > 11) and p.rebaja == 0.0:
+                            actualizado = self.lista_productos.actualizar_producto(
+                                p.id_producto,
+                                {'rebaja': 0.10}
+                            )
+                            if actualizado:
+                                print(f"☀️ Rebaja de temporada seca aplicada a {p.nombre}.")
+                                productos_actualizados += 1
                 except (ValueError, TypeError) as e:
                     print(f"Advertencia: No se pudo procesar fecha de expiración para producto ID {p.id_producto}. Razón: {e}")
             nodo_actual = nodo_actual.siguiente
         if productos_actualizados == 0:
-            print("No se aplicaron nuevas rebajas por expiración en esta ejecución.")
+            print("No se aplicaron nuevas rebajas por expiración o temporada en esta ejecución.")
         return productos_actualizados

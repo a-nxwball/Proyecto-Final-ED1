@@ -12,7 +12,7 @@ except ImportError:
 
 class Producto:
     # Modelo de producto
-    def __init__(self, id_producto, nombre, descripcion, categoria, precio, stock, fecha_expiracion=None, temporalidad=False, rebaja=0.0):
+    def __init__(self, id_producto, nombre, descripcion, categoria, precio, stock, fecha_expiracion=None, temporalidad=False, rebaja=0.0, id_proveedor=None):
         self.id_producto = id_producto
         self.nombre = nombre
         self.descripcion = descripcion
@@ -22,6 +22,7 @@ class Producto:
         self.fecha_expiracion = fecha_expiracion
         self.temporalidad = temporalidad
         self.rebaja = rebaja
+        self.id_proveedor = id_proveedor
 
 class NodoProducto:
     # Nodo de lista doblemente enlazada para productos
@@ -30,10 +31,84 @@ class NodoProducto:
         self.anterior = None
         self.siguiente = None
 
+class NodoCategoria:
+    def __init__(self, categoria):
+        self.categoria = categoria
+        self.productos_raiz = None  # NodoProducto (inicio de la lista de productos de esta categoría)
+        self.siguiente = None
+        self.izquierda = None
+        self.derecha = None
+
+    def agregar_producto(self, producto):
+        nuevo_nodo = NodoProducto(producto)
+        if self.productos_raiz is None:
+            self.productos_raiz = nuevo_nodo
+        else:
+            actual = self.productos_raiz
+            while actual.siguiente:
+                actual = actual.siguiente
+            actual.siguiente = nuevo_nodo
+            nuevo_nodo.anterior = actual
+
+class ArbolCategorias:
+    def __init__(self):
+        self.raiz = None
+
+    def _insertar(self, nodo, categoria):
+        if nodo is None:
+            return NodoCategoria(categoria)
+        if categoria < nodo.categoria:
+            nodo.izquierda = self._insertar(nodo.izquierda, categoria)
+        elif categoria > nodo.categoria:
+            nodo.derecha = self._insertar(nodo.derecha, categoria)
+        return nodo
+
+    def insertar_categoria(self, categoria):
+        if self.buscar_categoria(categoria) is None:
+            self.raiz = self._insertar(self.raiz, categoria)
+
+    def buscar_categoria(self, categoria):
+        actual = self.raiz
+        while actual:
+            if categoria == actual.categoria:
+                return actual
+            elif categoria < actual.categoria:
+                actual = actual.izquierda
+            else:
+                actual = actual.derecha
+        return None
+
+    def agregar_producto_a_categoria(self, producto):
+        self.insertar_categoria(producto.categoria)
+        nodo_cat = self.buscar_categoria(producto.categoria)
+        if nodo_cat:
+            nodo_cat.agregar_producto(producto)
+
+    def consultar_productos_por_categoria(self, categoria, limite=5):
+        nodo_cat = self.buscar_categoria(categoria)
+        productos = []
+        if nodo_cat:
+            actual = nodo_cat.productos_raiz
+            while actual and len(productos) < limite:
+                productos.append(actual.producto)
+                actual = actual.siguiente
+        return productos
+
+    def categorias_disponibles(self):
+        res = []
+        def inorden(nodo):
+            if nodo:
+                inorden(nodo.izquierda)
+                res.append(nodo.categoria)
+                inorden(nodo.derecha)
+        inorden(self.raiz)
+        return res
+
 class ListaProductos:
     # Lista doblemente enlazada de productos con sincronización a BD
     def __init__(self):
         self.raiz = None
+        self.arbol_categorias = ArbolCategorias()
         self._cargar_desde_db()
 
     def _cargar_desde_db(self):
@@ -50,9 +125,11 @@ class ListaProductos:
                 producto = Producto(
                     id_producto=fila[0], nombre=fila[1], descripcion=fila[2],
                     categoria=fila[3], precio=fila[4], stock=fila[5],
-                    fecha_expiracion=fila[6], temporalidad=bool(fila[7]), rebaja=fila[8]
+                    fecha_expiracion=fila[6], temporalidad=bool(fila[7]), rebaja=fila[8],
+                    id_proveedor=fila[9] if len(fila) > 9 else None
                 )
                 self._agregar_nodo(producto)
+                self.arbol_categorias.agregar_producto_a_categoria(producto)
         except sqlite3.Error as e:
             pass
         finally:
@@ -70,6 +147,8 @@ class ListaProductos:
                 nodo_actual = nodo_actual.siguiente
             nodo_actual.siguiente = nuevo_nodo
             nuevo_nodo.anterior = nodo_actual
+        # Agregar al árbol de categorías
+        self.arbol_categorias.agregar_producto_a_categoria(producto)
         return nuevo_nodo
 
     def _mensaje_estado_producto(self, producto):
@@ -92,7 +171,7 @@ class ListaProductos:
         for m in mensajes:
             print(m)
 
-    def registrar_producto(self, nombre, descripcion, categoria, precio, stock, fecha_expiracion=None, temporalidad=False, rebaja=0.0):
+    def registrar_producto(self, nombre, descripcion, categoria, precio, stock, fecha_expiracion=None, temporalidad=False, rebaja=0.0, id_proveedor=None):
         # Registra un producto en la BD y la lista
         if not fecha_expiracion:
             # Asigna fecha de expiración automática (7 días desde hoy)
@@ -102,12 +181,12 @@ class ListaProductos:
         try:
             cursor = conexion.cursor()
             cursor.execute("""
-                INSERT INTO Productos (nombre, descripcion, categoria, precio, stock, fecha_expiracion, temporalidad, rebaja)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """, (nombre, descripcion, categoria, precio, stock, fecha_expiracion, temporalidad, rebaja))
+                INSERT INTO Productos (nombre, descripcion, categoria, precio, stock, fecha_expiracion, temporalidad, rebaja, id_proveedor)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (nombre, descripcion, categoria, precio, stock, fecha_expiracion, temporalidad, rebaja, id_proveedor))
             id_producto = cursor.lastrowid
             conexion.commit()
-            producto = Producto(id_producto, nombre, descripcion, categoria, precio, stock, fecha_expiracion, temporalidad, rebaja)
+            producto = Producto(id_producto, nombre, descripcion, categoria, precio, stock, fecha_expiracion, temporalidad, rebaja, id_proveedor)
             nuevo_nodo = self._agregar_nodo(producto)
             print(f"Producto '{nombre}' registrado con ID: {id_producto}")
             self._mensaje_estado_producto(producto)
@@ -209,6 +288,12 @@ class ListaProductos:
                 break
             nodo_actual = nodo_actual.siguiente
         return resultados
+
+    def consultar_productos_por_categoria(self, categoria, limite=5):
+        return self.arbol_categorias.consultar_productos_por_categoria(categoria, limite)
+
+    def categorias_disponibles(self):
+        return self.arbol_categorias.categorias_disponibles()
 
     def resumen_movimientos_producto(self, movimientos_lista, id_producto, fecha_inicio, fecha_fin, tipo=None):
         # Resumen de movimientos de un producto

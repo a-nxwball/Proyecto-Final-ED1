@@ -175,3 +175,132 @@ class ListaMovimientos:
             return True
         else:
             return False
+
+    def reporte_logistico_final(self, lista_productos, fecha_inicio=None, fecha_fin=None, id_producto=None):
+        """
+        Reporte logístico avanzado: muestra movimientos físicos (entradas, salidas, stock inicial/final),
+        permite filtrar por producto y fechas. Incluye rotación, productos más/menos movidos y alertas de stock mínimo.
+        """
+        from collections import defaultdict
+        from datetime import date as dtdate
+
+        def parse_fecha(f):
+            if isinstance(f, dtdate):
+                return f
+            return dtdate.fromisoformat(f)
+
+        # Filtrar movimientos por fecha y producto
+        movimientos_filtrados = []
+        nodo = self.raiz
+        while nodo:
+            m = nodo.movimiento
+            cumple_fecha = True
+            if fecha_inicio and fecha_fin:
+                try:
+                    fecha_mov = parse_fecha(m.fecha)
+                    cumple_fecha = (fecha_mov >= parse_fecha(fecha_inicio) and fecha_mov <= parse_fecha(fecha_fin))
+                except Exception:
+                    cumple_fecha = False
+            if cumple_fecha:
+                movimientos_filtrados.append(m)
+            nodo = nodo.siguiente
+
+        # Agrupar por producto
+        rotacion = defaultdict(int)
+        entradas = defaultdict(int)
+        salidas = defaultdict(int)
+        stock_inicial = {}
+        stock_final = {}
+
+        # Obtener stock inicial/final y rotación
+        productos = lista_productos.consultar_producto()
+        for p in productos:
+            stock_inicial[p.id_producto] = p.stock
+            stock_final[p.id_producto] = p.stock
+
+        for m in movimientos_filtrados:
+            # Buscar productos involucrados en la transacción
+            # Se asume que la transacción tiene productos como lista de IDs o dicts
+            from app.ModuloTransacciones import ListaTransacciones
+            transacciones = ListaTransacciones()
+            t = None
+            nodo_t = transacciones.raiz
+            while nodo_t:
+                if nodo_t.transaccion.id_transaccion == m.id_transaccion:
+                    t = nodo_t.transaccion
+                    break
+                nodo_t = nodo_t.siguiente
+            if not t:
+                continue
+            productos_ids = []
+            if isinstance(t.productos, list):
+                for x in t.productos:
+                    if isinstance(x, dict):
+                        productos_ids.append(x.get("id"))
+                    else:
+                        productos_ids.append(x)
+            else:
+                try:
+                    productos_ids = [int(t.productos)]
+                except Exception:
+                    continue
+            for pid in productos_ids:
+                if id_producto and pid != id_producto:
+                    continue
+                rotacion[pid] += 1
+                if m.tipo.lower() == "compra":
+                    entradas[pid] += 1
+                elif m.tipo.lower() == "venta":
+                    salidas[pid] += 1
+
+        # Productos más y menos movidos
+        if rotacion:
+            max_rot = max(rotacion.values())
+            min_rot = min(rotacion.values())
+            productos_mas_movidos = [pid for pid, v in rotacion.items() if v == max_rot]
+            productos_menos_movidos = [pid for pid, v in rotacion.items() if v == min_rot]
+        else:
+            productos_mas_movidos = []
+            productos_menos_movidos = []
+
+        # Alertas por stock mínimo
+        alertas_stock = []
+        for p in productos:
+            if p.stock <= 5:
+                alertas_stock.append(f"⚠️ Stock mínimo para producto {p.nombre} (ID {p.id_producto}): {p.stock}")
+
+        print("\n===== REPORTE LOGÍSTICO FINAL =====")
+        if fecha_inicio and fecha_fin:
+            print(f"Rango de fechas: {fecha_inicio} a {fecha_fin}")
+        if id_producto:
+            print(f"Producto ID: {id_producto}")
+        print("-----------------------------------")
+        print("Rotación de productos (movimientos):")
+        for pid, v in rotacion.items():
+            nombre = next((p.nombre for p in productos if p.id_producto == pid), str(pid))
+            print(f"Producto {nombre} (ID {pid}): {v} movimientos")
+        print("-----------------------------------")
+        print("Entradas por producto:")
+        for pid, v in entradas.items():
+            nombre = next((p.nombre for p in productos if p.id_producto == pid), str(pid))
+            print(f"Producto {nombre} (ID {pid}): {v} entradas")
+        print("Salidas por producto:")
+        for pid, v in salidas.items():
+            nombre = next((p.nombre for p in productos if p.id_producto == pid), str(pid))
+            print(f"Producto {nombre} (ID {pid}): {v} salidas")
+        print("-----------------------------------")
+        print("Productos más movidos:", productos_mas_movidos)
+        print("Productos menos movidos:", productos_menos_movidos)
+        print("-----------------------------------")
+        print("Alertas de stock mínimo:")
+        for alerta in alertas_stock:
+            print(alerta)
+        print("===== FIN REPORTE LOGÍSTICO =====\n")
+        return {
+            "rotacion": dict(rotacion),
+            "entradas": dict(entradas),
+            "salidas": dict(salidas),
+            "productos_mas_movidos": productos_mas_movidos,
+            "productos_menos_movidos": productos_menos_movidos,
+            "alertas_stock": alertas_stock
+        }

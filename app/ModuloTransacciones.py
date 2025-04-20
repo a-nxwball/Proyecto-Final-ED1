@@ -19,9 +19,10 @@ class NodoTransaccion:
 
 class Transaccion:
     # Modelo de transacción
-    def __init__(self, id_transaccion, id_cliente, productos, total, fecha, tipo_pago, estado):
+    def __init__(self, id_transaccion, id_cliente, id_proveedor, productos, total, fecha, tipo_pago, estado):
         self.id_transaccion = id_transaccion
         self.id_cliente = id_cliente
+        self.id_proveedor = id_proveedor
         self.productos = productos
         self.total = total
         self.fecha = fecha
@@ -45,12 +46,20 @@ class ListaTransacciones:
             filas = cursor.fetchall()
             for fila in filas:
                 try:
-                    productos_lista = json.loads(fila[2]) if fila[2] else []
+                    productos_lista = json.loads(fila[3]) if fila[3] else []
                 except json.JSONDecodeError:
                     productos_lista = []
+                # Asegurarse de que el total sea float
+                total_val = float(fila[4]) if fila[4] is not None else 0.0
                 transaccion = Transaccion(
-                    id_transaccion=fila[0], id_cliente=fila[1], productos=productos_lista,
-                    total=fila[3], fecha=fila[4], tipo_pago=fila[5], estado=fila[6]
+                    id_transaccion=fila[0],
+                    id_cliente=fila[1],
+                    id_proveedor=fila[2],
+                    productos=productos_lista,
+                    total=total_val,
+                    fecha=fila[5],
+                    tipo_pago=fila[6],
+                    estado=fila[7]
                 )
                 self._agregar_nodo(transaccion)
         except sqlite3.Error as e:
@@ -71,20 +80,20 @@ class ListaTransacciones:
             nuevo_nodo.anterior = nodo_actual
         return nuevo_nodo
 
-    def registrar_transaccion(self, id_cliente, productos, total, fecha, tipo_pago, estado):
+    def registrar_transaccion(self, id_cliente=None, productos=None, total=0.0, fecha=None, tipo_pago=None, estado=None, id_proveedor=None):
         # Registra una transacción en la BD y la lista
         conexion = conectar_db()
         if not conexion: return None
         try:
-            productos_json = json.dumps(productos)
+            productos_json = json.dumps(productos) if productos is not None else "[]"
             cursor = conexion.cursor()
             cursor.execute("""
-                INSERT INTO Transacciones (id_cliente, productos, total, fecha, tipo_pago, estado)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """, (id_cliente, productos_json, total, fecha, tipo_pago, estado))
+                INSERT INTO Transacciones (id_cliente, id_proveedor, productos, total, fecha, tipo_pago, estado)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (id_cliente, id_proveedor, productos_json, total, fecha, tipo_pago, estado))
             id_transaccion = cursor.lastrowid
             conexion.commit()
-            transaccion = Transaccion(id_transaccion, id_cliente, productos, total, fecha, tipo_pago, estado)
+            transaccion = Transaccion(id_transaccion, id_cliente, id_proveedor, productos, total, fecha, tipo_pago, estado)
             nuevo_nodo = self._agregar_nodo(transaccion)
             print(f"Transacción registrada con ID: {id_transaccion}")
             return nuevo_nodo.transaccion
@@ -176,13 +185,14 @@ class ListaTransacciones:
         else:
             return False
 
-    def consultar_transacciones(self, id_cliente=None, fecha=None):
-        # Consulta transacciones por ID de cliente o fecha
+    def consultar_transacciones(self, id_cliente=None, fecha=None, id_proveedor=None):
+        # Consulta transacciones por ID de cliente, proveedor o fecha
         nodo_actual = self.raiz
         resultados = []
         while nodo_actual:
             t = nodo_actual.transaccion
             if (id_cliente is None or t.id_cliente == id_cliente) and \
+               (id_proveedor is None or t.id_proveedor == id_proveedor) and \
                (fecha is None or t.fecha == fecha):
                 resultados.append(t)
             nodo_actual = nodo_actual.siguiente
@@ -193,3 +203,71 @@ class ListaTransacciones:
         if not movimientos_lista:
             return None
         return movimientos_lista.resumen_movimientos_por_rango(fecha_inicio, fecha_fin, tipo)
+
+    def reporte_transaccional_final(self, movimientos_lista, fecha_inicio=None, fecha_fin=None, id_cliente=None, id_proveedor=None):
+        """
+        Reporte transaccional avanzado: muestra todas las transacciones financieras (compras, ventas, pagos, deudas, utilidades),
+        agrupadas por rango de fechas, cliente o proveedor.
+        Incluye totales de compra, venta, utilidad bruta y neta, pagos realizados y saldos pendientes.
+        """
+        nodo = self.raiz
+        transacciones_filtradas = []
+        while nodo:
+            t = nodo.transaccion
+            cumple_fecha = True
+            if fecha_inicio and fecha_fin:
+                cumple_fecha = (t.fecha >= fecha_inicio and t.fecha <= fecha_fin)
+            if (id_cliente is None or t.id_cliente == id_cliente) and \
+               (id_proveedor is None or t.id_proveedor == id_proveedor) and cumple_fecha:
+                transacciones_filtradas.append(t)
+            nodo = nodo.siguiente
+
+        total_ventas = 0.0
+        total_compras = 0.0
+        pagos_realizados = 0.0
+        saldo_pendiente = 0.0
+        utilidad_bruta = 0.0
+        utilidad_neta = 0.0
+
+        for t in transacciones_filtradas:
+            if t.estado and t.estado.lower() == "completada":
+                if t.tipo_pago and "compra" in t.tipo_pago.lower():
+                    total_compras += t.total
+                else:
+                    total_ventas += t.total
+                    if t.tipo_pago and ("efectivo" in t.tipo_pago.lower() or "tarjeta" in t.tipo_pago.lower()):
+                        pagos_realizados += t.total
+            elif t.estado and t.estado.lower() == "pendiente":
+                saldo_pendiente += t.total
+
+        utilidad_bruta = total_ventas - total_compras
+        utilidad_neta = utilidad_bruta  # Si hay otros gastos, restar aquí
+
+        print("\n===== REPORTE TRANSACCIONAL FINAL =====")
+        if fecha_inicio and fecha_fin:
+            print(f"Rango de fechas: {fecha_inicio} a {fecha_fin}")
+        if id_cliente:
+            print(f"Cliente ID: {id_cliente}")
+        if id_proveedor:
+            print(f"Proveedor ID: {id_proveedor}")
+        print("---------------------------------------")
+        print(f"Total de ventas: ${total_ventas:.2f}")
+        print(f"Total de compras: ${total_compras:.2f}")
+        print(f"Utilidad bruta: ${utilidad_bruta:.2f}")
+        print(f"Utilidad neta: ${utilidad_neta:.2f}")
+        print(f"Pagos realizados: ${pagos_realizados:.2f}")
+        print(f"Saldos pendientes: ${saldo_pendiente:.2f}")
+        print("---------------------------------------")
+        print("Detalle de transacciones:")
+        for t in transacciones_filtradas:
+            print(vars(t))
+        print("===== FIN REPORTE TRANSACCIONAL =====\n")
+        return {
+            "ventas": total_ventas,
+            "compras": total_compras,
+            "utilidad_bruta": utilidad_bruta,
+            "utilidad_neta": utilidad_neta,
+            "pagos_realizados": pagos_realizados,
+            "saldo_pendiente": saldo_pendiente,
+            "transacciones": transacciones_filtradas
+        }
