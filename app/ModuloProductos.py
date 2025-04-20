@@ -94,6 +94,9 @@ class ListaProductos:
 
     def registrar_producto(self, nombre, descripcion, categoria, precio, stock, fecha_expiracion=None, temporalidad=False, rebaja=0.0):
         # Registra un producto en la BD y la lista
+        if not fecha_expiracion:
+            # Asigna fecha de expiración automática (7 días desde hoy)
+            fecha_expiracion = (date.today() + timedelta(days=7)).isoformat()
         conexion = conectar_db()
         if not conexion: return None
         try:
