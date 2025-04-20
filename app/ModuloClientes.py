@@ -3,13 +3,14 @@ import os
 try:
     from bd.BDSQLite import conectar_db
 except ImportError:
-     import sys
-     current_dir = os.path.dirname(os.path.abspath(__file__))
-     parent_dir = os.path.dirname(current_dir)
-     sys.path.append(parent_dir)
-     from bd.BDSQLite import conectar_db
+    import sys
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.dirname(current_dir)
+    sys.path.append(parent_dir)
+    from bd.BDSQLite import conectar_db
 
 class Cliente:
+    # Modelo de cliente
     def __init__(self, id_cliente, nombre, contacto, direccion, tipo_cliente, credito=0):
         self.id_cliente = id_cliente
         self.nombre = nombre
@@ -19,17 +20,20 @@ class Cliente:
         self.credito = credito
 
 class NodoCliente:
+    # Nodo de lista doblemente enlazada para clientes
     def __init__(self, cliente):
         self.cliente = cliente
         self.anterior = None
         self.siguiente = None
 
 class ListaClientes:
+    # Lista doblemente enlazada de clientes con sincronización a BD
     def __init__(self):
         self.raiz = None
         self._cargar_desde_db()
 
     def _cargar_desde_db(self):
+        # Carga clientes desde la base de datos
         self.raiz = None
         conexion = conectar_db()
         if not conexion: return
@@ -44,11 +48,12 @@ class ListaClientes:
                 )
                 self._agregar_nodo(cliente)
         except sqlite3.Error as e:
-            print(f"Error al cargar clientes desde la BD: {e}")
+            pass
         finally:
             if conexion: conexion.close()
 
     def _agregar_nodo(self, cliente):
+        # Agrega un nodo a la lista
         nuevo_nodo = NodoCliente(cliente)
         if self.raiz is None:
             self.raiz = nuevo_nodo
@@ -61,6 +66,7 @@ class ListaClientes:
         return nuevo_nodo
 
     def registrar_cliente(self, nombre, contacto, direccion, tipo_cliente, credito=0):
+        # Registra un cliente en la BD y la lista
         conexion = conectar_db()
         if not conexion: return None
         try:
@@ -76,13 +82,13 @@ class ListaClientes:
             print(f"Cliente '{nombre}' registrado con ID: {id_cliente}")
             return nuevo_nodo.cliente
         except sqlite3.Error as e:
-            print(f"Error al registrar cliente en la BD: {e}")
             if conexion: conexion.rollback()
             return None
         finally:
             if conexion: conexion.close()
 
     def actualizar_cliente(self, id_cliente, nuevos_datos):
+        # Actualiza un cliente en la lista y la BD
         nodo_actual = self.raiz
         cliente_encontrado = None
         while nodo_actual:
@@ -94,7 +100,6 @@ class ListaClientes:
             nodo_actual = nodo_actual.siguiente
 
         if not cliente_encontrado:
-            print(f"Error: Cliente ID {id_cliente} no encontrado en lista. Sincronizando desde BD...")
             self._cargar_desde_db()
             return False
 
@@ -107,19 +112,18 @@ class ListaClientes:
             valores.append(id_cliente)
             cursor.execute(f"UPDATE Clientes SET {set_clause} WHERE id_cliente = ?", valores)
             if cursor.rowcount == 0:
-                print(f"Advertencia: Cliente ID {id_cliente} no encontrado en la BD al intentar actualizar.")
                 return False
             conexion.commit()
             print(f"Cliente ID {id_cliente} actualizado en la BD.")
             return True
         except sqlite3.Error as e:
-            print(f"Error al actualizar cliente ID {id_cliente} en la BD: {e}")
             if conexion: conexion.rollback()
             return False
         finally:
             if conexion: conexion.close()
 
     def eliminar_cliente(self, id_cliente):
+        # Elimina un cliente de la BD y la lista
         conexion = conectar_db()
         if not conexion: return False
         eliminado_db = False
@@ -131,10 +135,7 @@ class ListaClientes:
                 conexion.commit()
                 eliminado_db = True
                 print(f"Cliente ID {id_cliente} eliminado de la BD (y transacciones/movimientos asociados si existen).")
-            else:
-                print(f"Advertencia: Cliente ID {id_cliente} no encontrado en la BD.")
         except sqlite3.Error as e:
-            print(f"Error al eliminar cliente ID {id_cliente} de la BD: {e}")
             if conexion: conexion.rollback()
             return False
         finally:
@@ -154,14 +155,13 @@ class ListaClientes:
             nodo_actual = nodo_actual.siguiente
 
         if eliminado_db and not nodo_actual:
-            print(f"Advertencia: Cliente ID {id_cliente} eliminado de BD pero no encontrado en lista. Sincronizando desde BD...")
             self._cargar_desde_db()
             return True
         else:
-             print(f"Error: Cliente ID {id_cliente} no encontrado ni en BD ni en lista.")
-             return False
+            return False
 
     def consultar_cliente(self, id_cliente=None, nombre=None):
+        # Consulta clientes por ID o nombre
         nodo_actual = self.raiz
         resultados = []
         while nodo_actual:
@@ -169,16 +169,11 @@ class ListaClientes:
             if (id_cliente is None or c.id_cliente == id_cliente) and (nombre is None or c.nombre.lower() == nombre.lower()):
                 resultados.append(c)
             nodo_actual = nodo_actual.siguiente
-        
         return resultados
 
     def resumen_movimientos_cliente(self, movimientos_lista, id_cliente, fecha_inicio, fecha_fin, tipo=None):
-        """
-        Devuelve un resumen de movimientos de un cliente específico en un rango de fechas y por tipo.
-        movimientos_lista: instancia de ListaMovimientos.
-        """
+        # Resumen de movimientos de un cliente
         if not movimientos_lista:
-            print("Debe proporcionar una instancia de ListaMovimientos.")
             return None
         from app.ModuloTransacciones import ListaTransacciones
         transacciones = ListaTransacciones()

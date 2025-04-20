@@ -13,6 +13,30 @@ TABLAS = [
     "Productos"
 ]
 
+def limpiar_cache_pycache(root_dir):
+    """
+    Elimina todos los directorios __pycache__ y archivos .pyc en el proyecto.
+    """
+    for dirpath, dirnames, filenames in os.walk(root_dir):
+        # Eliminar directorios __pycache__
+        if "__pycache__" in dirnames:
+            pycache_path = os.path.join(dirpath, "__pycache__")
+            try:
+                import shutil
+                shutil.rmtree(pycache_path)
+                print(f"Eliminado: {pycache_path}")
+            except Exception as e:
+                print(f"Error al eliminar {pycache_path}: {e}")
+        # Eliminar archivos .pyc
+        for filename in filenames:
+            if filename.endswith(".pyc"):
+                pyc_path = os.path.join(dirpath, filename)
+                try:
+                    os.remove(pyc_path)
+                    print(f"Eliminado: {pyc_path}")
+                except Exception as e:
+                    print(f"Error al eliminar {pyc_path}: {e}")
+
 def resetear_bd():
     if not os.path.exists(DB_PATH):
         print("No existe la base de datos:", DB_PATH)
@@ -31,6 +55,10 @@ def resetear_bd():
         conexion.rollback()
     finally:
         conexion.close()
+    # Limpiar caché de Python
+    print("Eliminando cachés (__pycache__ y .pyc)...")
+    limpiar_cache_pycache(BASE_DIR)
+    print("Limpieza de caché completada.")
 
 if __name__ == "__main__":
     resetear_bd()
