@@ -14,20 +14,20 @@ from app.ModuloMovimientos import ListaMovimientos
 from app.ModuloRotaciones import ModuloRotaciones
 from app.ModuloProveedores import ListaProveedores
 
-UMBRAL_STOCK = 40
-STOCK_OBJETIVO = 30
-MARGEN_OBJETIVO = 0.25
-ROTACION_MINIMA = 3
+UMBRAL_STOCK = 40  # Stock mínimo antes de activar reabastecimiento automático
+STOCK_OBJETIVO = 30  # Nivel de stock deseado tras reabastecimiento
+MARGEN_OBJETIVO = 0.25  # Margen de ganancia objetivo para ajustar precios
+ROTACION_MINIMA = 3  # Número mínimo de ventas por semana para considerar buena rotación
 
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-DB_PATH = os.path.join(BASE_DIR, "bd", "Abarrotería.db")
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))  # Ruta base del proyecto
+DB_PATH = os.path.join(BASE_DIR, "bd", "Abarrotería.db")  # Ruta a la base de datos SQLite
 TABLAS = [
-    "Rotaciones",
-    "Movimientos",
-    "Transacciones",
-    "Clientes",
-    "Proveedores",
-    "Productos"
+    "Rotaciones",      # Tabla para registrar rotaciones de productos
+    "Movimientos",     # Tabla para registrar movimientos de inventario
+    "Transacciones",   # Tabla para registrar ventas y compras
+    "Clientes",        # Tabla de clientes
+    "Proveedores",     # Tabla de proveedores
+    "Productos"        # Tabla de productos
 ]
 
 def limpiar_cache_pycache(root_dir):
