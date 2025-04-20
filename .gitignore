@@ -11,3 +11,5 @@ __pycache__/
 .env
 .vscode/
 .idea/
+tests/
+Plan_Sistema_Gestion_Inventario.txt
