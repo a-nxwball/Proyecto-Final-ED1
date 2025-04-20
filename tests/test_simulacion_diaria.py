@@ -1,5 +1,6 @@
 import sys
 import os
+import random
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import unittest
@@ -23,35 +24,64 @@ class TestSimulacionDiaria(unittest.TestCase):
         self.proveedores = ListaProveedores()
         self.env = simpy.Environment()
         self.env.products = []
+        self.env.clientes = []
+        self.env.proveedores = []
 
     # --- Simulación con simpy ---
     def llegada_productos(self, env):
         yield env.timeout(0)
-        p1 = self.productos.registrar_producto(
-            nombre="Manzana", descripcion="Roja", categoria="Fruta",
-            precio=1.5, stock=50,
-            fecha_expiracion=(self.hoy + timedelta(days=3)).isoformat(),
-            temporalidad=True, rebaja=0.0
-        )
-        p2 = self.productos.registrar_producto(
-            nombre="Pera", descripcion="Verde", categoria="Fruta",
-            precio=2.0, stock=30,
-            fecha_expiracion=(self.hoy + timedelta(days=10)).isoformat(),
-            temporalidad=False, rebaja=0.0
-        )
-        p3 = self.productos.registrar_producto(
-            nombre="Sandía", descripcion="Grande", categoria="Fruta",
-            precio=3.0, stock=20,
-            fecha_expiracion=(self.hoy + timedelta(days=1)).isoformat(),
-            temporalidad=True, rebaja=0.0
-        )
-        env.products = [p1, p2, p3]
+        # Lista de productos y proveedores de ejemplo
+        nombres = ["Manzana", "Pera", "Sandía", "Banano", "Fresa", "Melón"]
+        descripciones = ["Roja", "Verde", "Grande", "Amarillo", "Temporada", "Expira"]
+        categorias = ["Fruta", "Fruta", "Fruta", "Fruta", "Fruta", "Fruta"]
+        precios = [1.5, 2.0, 3.0, 1.0, 2.0, 3.0]
+        stocks = [50, 30, 20, 40, 10, 5]
+        temporalidades = [True, False, True, False, True, False]
+        # Proveedores
+        proveedores = [
+            self.proveedores.registrar_proveedor(f"Proveedor{i}", f"Contacto{i}", f"Dirección{i}")
+            for i in range(1, 4)
+        ]
+        env.proveedores = [p for p in proveedores if p is not None]
+        productos_creados = []
+        for i in range(len(nombres)):
+            producto = self.productos.registrar_producto(
+                nombre=nombres[i],
+                descripcion=descripciones[i],
+                categoria=categorias[i],
+                precio=precios[i],
+                stock=stocks[i],
+                fecha_expiracion=(self.hoy + timedelta(days=random.randint(1, 15))).isoformat(),
+                temporalidad=temporalidades[i],
+                rebaja=0.0
+            )
+            productos_creados.append(producto)
+        env.products = productos_creados
+
+    def llegada_clientes(self, env):
+        yield env.timeout(0)
+        nombres = ["Juan Pérez", "Ana Gómez", "Carlos Ruiz", "Lucía Torres"]
+        tipos = ["minorista", "mayorista"]
+        clientes_creados = []
+        for i, nombre in enumerate(nombres):
+            cliente = self.clientes.registrar_cliente(
+                nombre=nombre,
+                contacto=f"Contacto{i}",
+                direccion=f"Dirección{i}",
+                tipo_cliente=random.choice(tipos),
+                credito=random.randint(0, 200)
+            )
+            clientes_creados.append(cliente)
+        env.clientes = clientes_creados
 
     def actualizar_stock(self, env):
         yield env.timeout(1)
-        p1, p2, _ = env.products
-        self.productos.actualizar_producto(p1.id_producto, {"stock": p1.stock + 10})
-        self.productos.actualizar_producto(p2.id_producto, {"stock": p2.stock + 5})
+        # Selecciona aleatoriamente productos para actualizar stock
+        productos = [p for p in env.products if p is not None]
+        if productos:
+            seleccionados = random.sample(productos, min(2, len(productos)))
+            for p in seleccionados:
+                self.productos.actualizar_producto(p.id_producto, {"stock": p.stock + random.randint(1, 20)})
 
     def aplicar_rebajas(self, env):
         yield env.timeout(2)
@@ -60,23 +90,28 @@ class TestSimulacionDiaria(unittest.TestCase):
 
     def registrar_venta(self, env):
         yield env.timeout(3)
-        p1, _, p3 = env.products
-        cliente = self.clientes.registrar_cliente(
-            nombre="Juan Pérez", contacto="123456789", direccion="Calle 1", tipo_cliente="minorista", credito=100
-        )
+        productos = [p for p in env.products if p is not None]
+        clientes = [c for c in env.clientes if c is not None]
+        if not productos or not clientes:
+            return
+        # Selecciona aleatoriamente cliente y productos para la venta
+        cliente = random.choice(clientes)
+        productos_venta = random.sample(productos, min(2, len(productos)))
+        total = sum(p.precio for p in productos_venta)
         venta = self.transacciones.registrar_transaccion(
             id_cliente=cliente.id_cliente,
-            productos=[p1.id_producto, p3.id_producto],
-            total=p1.precio + p3.precio,
+            productos=[p.id_producto for p in productos_venta],
+            total=total,
             fecha=self.hoy.isoformat(),
-            tipo_pago="efectivo",
-            estado="completada"
+            tipo_pago=random.choice(["efectivo", "tarjeta", "crédito"]),
+            estado=random.choice(["completada", "pendiente"])
         )
-        self.movimientos.registrar_movimiento(
-            id_transaccion=venta.id_transaccion,
-            fecha=self.hoy.isoformat(),
-            tipo="venta"
-        )
+        if venta:
+            self.movimientos.registrar_movimiento(
+                id_transaccion=venta.id_transaccion,
+                fecha=self.hoy.isoformat(),
+                tipo="venta"
+            )
 
     def consultar_movimientos(self, env):
         yield env.timeout(4)
@@ -90,6 +125,7 @@ class TestSimulacionDiaria(unittest.TestCase):
 
     def test_flujo_diario_simpy(self):
         self.env.process(self.llegada_productos(self.env))
+        self.env.process(self.llegada_clientes(self.env))
         self.env.process(self.actualizar_stock(self.env))
         self.env.process(self.aplicar_rebajas(self.env))
         self.env.process(self.registrar_venta(self.env))
