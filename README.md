@@ -2,7 +2,7 @@
 
 **Co-autores:**
 
-- Aaron Newball (@anxwball)
+- Aaron Newball (@a-nxwball)
 - Alec Biruet (@Aleccito)
 - Carlos Poveda (@CarlosPoveda822)
 - Eimy Méndez (@EimyMendez)
